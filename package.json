@@ -1,0 +1,17 @@
+{
+  "name": "debalect",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Debalect — Open-source cognitive training platform with Oxford Union debate opponent and logic professor",
+  "scripts": {
+    "install:all": "cd server && npm install && cd ../client && npm install",
+    "dev": "concurrently -n server,client -c cyan,magenta \"cd server && npm run dev\" \"cd client && npm run dev\"",
+    "dev:server": "cd server && npm run dev",
+    "dev:client": "cd client && npm run dev",
+    "typecheck": "cd server && npm run typecheck && cd ../client && npm run typecheck",
+    "build": "cd client && npm run build"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
