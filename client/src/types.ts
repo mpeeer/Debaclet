@@ -4,6 +4,22 @@ export interface DebateResult {
   professor: string;
 }
 
+export interface DebateScore {
+  total: number;
+  counterCount: number;
+  confidence: string;
+  hasFallacies: boolean;
+}
+
+export interface HistoryEntry {
+  id: string;
+  timestamp: number;
+  fileName: string;
+  customName?: string;
+  result: DebateResult;
+  score: DebateScore;
+}
+
 export interface CounterArgument {
   id: string;
   title: string;

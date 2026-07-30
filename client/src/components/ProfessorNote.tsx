@@ -24,7 +24,6 @@ function parseProfessorAnalysis(text: string): ParsedAnalysis | null {
     const premises: string[] = [];
     const assumptions: string[] = [];
 
-    // Extract premises
     const premSection = text.match(/##\s*ARGUMENT\s*RECONSTRUCTION[\s\S]*?\*\*Premises identified:\*\*([\s\S]*?)(?=\*\*Conclusion|\*\*Implicit)/i);
     if (premSection) {
       const lines = premSection[1].split('\n').filter((l) => l.trim().startsWith('-') || l.trim().match(/^\d+\./));
@@ -34,12 +33,10 @@ function parseProfessorAnalysis(text: string): ParsedAnalysis | null {
       });
     }
 
-    // Extract conclusion
     let conclusion = '';
     const concMatch = text.match(/\*\*Conclusion:\*\*\s*([\s\S]*?)(?=\*\*Implicit|\n\*|$)/i);
     if (concMatch) conclusion = concMatch[1].trim();
 
-    // Extract assumptions
     const assumSection = text.match(/\*\*Implicit assumptions:\*\*([\s\S]*?)(?=##\s*LOGICAL)/i);
     if (assumSection) {
       const lines = assumSection[1].split('\n').filter((l) => l.trim().startsWith('-') || l.trim().match(/^\d+\./));
@@ -49,27 +46,22 @@ function parseProfessorAnalysis(text: string): ParsedAnalysis | null {
       });
     }
 
-    // Extract strengths
     let strengths = '';
     const strMatch = text.match(/###\s*Strengths\s*\n([\s\S]*?)(?=###\s*Weaknesses)/i);
     if (strMatch) strengths = strMatch[1].trim();
 
-    // Extract weaknesses
     let weaknesses = '';
     const weakMatch = text.match(/###\s*Weaknesses\s*\n([\s\S]*?)(?=###\s*Fallacies)/i);
     if (weakMatch) weaknesses = weakMatch[1].trim();
 
-    // Extract fallacies
     let fallacies = '';
     const fallMatch = text.match(/###\s*Fallacies\s*Detected\s*\n([\s\S]*?)(?=###\s*Structural)/i);
     if (fallMatch) fallacies = fallMatch[1].trim();
 
-    // Extract structural
     let structural = '';
     const structMatch = text.match(/###\s*Structural\s*Assessment\s*\n([\s\S]*?)(?=##\s*EPISTEMIC)/i);
     if (structMatch) structural = structMatch[1].trim();
 
-    // Extract epistemic verdict
     let confidence = '';
     let improvement = '';
     const confMatch = text.match(/\*\*Confidence level:\*\*\s*(.*?)(?=\n|$)/i);
@@ -77,17 +69,13 @@ function parseProfessorAnalysis(text: string): ParsedAnalysis | null {
     const imprMatch = text.match(/\*\*Key improvement:\*\*\s*([\s\S]*?)(?=##\s*RECOMMENDED|$)/i);
     if (imprMatch) improvement = imprMatch[1].trim();
 
-    // Extract reading
     let reading = '';
     const readMatch = text.match(/##\s*RECOMMENDED\s*READING\s*\n([\s\S]*?)$/i);
     if (readMatch) reading = readMatch[1].trim();
 
     return {
       reconstruction: { premises, conclusion, assumptions },
-      strengths,
-      weaknesses,
-      fallacies,
-      structural,
+      strengths, weaknesses, fallacies, structural,
       verdict: { confidence, improvement },
       reading,
     };
@@ -96,17 +84,16 @@ function parseProfessorAnalysis(text: string): ParsedAnalysis | null {
   }
 }
 
-function getConfidenceColor(level: string): string {
+function getConfidenceColor(level: string): { color: string; bg: string; border: string; bar: string; pct: number } {
   const l = level.toLowerCase();
-  if (l.includes('high')) return 'text-emerald-400 bg-emerald-400/10 border-emerald-400/20';
-  if (l.includes('moderate')) return 'text-amber-400 bg-amber-400/10 border-amber-400/20';
-  return 'text-red-400 bg-red-400/10 border-red-400/20';
+  if (l.includes('high')) return { color: 'text-emerald-400', bg: 'bg-emerald-400/10', border: 'border-emerald-400/20', bar: 'bg-emerald-400', pct: 85 };
+  if (l.includes('moderate')) return { color: 'text-amber-400', bg: 'bg-amber-400/10', border: 'border-amber-400/20', bar: 'bg-amber-400', pct: 50 };
+  return { color: 'text-red-400', bg: 'bg-red-400/10', border: 'border-red-400/20', bar: 'bg-red-400', pct: 20 };
 }
 
 export default function ProfessorNote({ rawText }: Props) {
   const analysis = parseProfessorAnalysis(rawText);
 
-  // Fallback: raw text display
   if (!analysis) {
     return (
       <div className="glass rounded-2xl p-6">
@@ -130,10 +117,10 @@ export default function ProfessorNote({ rawText }: Props) {
 
         {analysis.reconstruction.premises.length > 0 && (
           <div className="mb-3">
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500 mb-2">Premises</p>
+            <p className="text-[11px] font-semibold uppercase tracking-wider mb-2" style={{ color: 'rgb(var(--text-muted))' }}>Premises</p>
             <ul className="space-y-1.5">
               {analysis.reconstruction.premises.map((p, i) => (
-                <li key={i} className="flex gap-2 text-sm text-zinc-300">
+                <li key={i} className="flex gap-2 text-sm" style={{ color: 'rgb(var(--text-secondary))' }}>
                   <span className="text-debate-professor/60 font-mono text-xs mt-1">P{i + 1}</span>
                   <span>{p}</span>
                 </li>
@@ -144,17 +131,17 @@ export default function ProfessorNote({ rawText }: Props) {
 
         {analysis.reconstruction.conclusion && (
           <div className="mb-3">
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500 mb-1">Conclusion</p>
-            <p className="text-sm text-white font-medium">{analysis.reconstruction.conclusion}</p>
+            <p className="text-[11px] font-semibold uppercase tracking-wider mb-1" style={{ color: 'rgb(var(--text-muted))' }}>Conclusion</p>
+            <p className="text-sm font-medium" style={{ color: 'rgb(var(--text))' }}>{analysis.reconstruction.conclusion}</p>
           </div>
         )}
 
         {analysis.reconstruction.assumptions.length > 0 && (
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500 mb-2">Implicit Assumptions</p>
+            <p className="text-[11px] font-semibold uppercase tracking-wider mb-2" style={{ color: 'rgb(var(--text-muted))' }}>Implicit Assumptions</p>
             <ul className="space-y-1">
               {analysis.reconstruction.assumptions.map((a, i) => (
-                <li key={i} className="flex gap-2 text-sm text-zinc-400">
+                <li key={i} className="flex gap-2 text-sm" style={{ color: 'rgb(var(--text-secondary))' }}>
                   <span className="text-amber-400/60 font-mono text-xs mt-1">A{i + 1}</span>
                   <span>{a}</span>
                 </li>
@@ -174,7 +161,7 @@ export default function ProfessorNote({ rawText }: Props) {
               </svg>
               <span className="text-[11px] font-semibold uppercase tracking-wider text-emerald-400">Strengths</span>
             </div>
-            <p className="text-sm text-zinc-300 leading-relaxed">{analysis.strengths}</p>
+            <p className="text-sm leading-relaxed" style={{ color: 'rgb(var(--text-secondary))' }}>{analysis.strengths}</p>
           </div>
         )}
 
@@ -186,7 +173,7 @@ export default function ProfessorNote({ rawText }: Props) {
               </svg>
               <span className="text-[11px] font-semibold uppercase tracking-wider text-amber-400">Weaknesses</span>
             </div>
-            <p className="text-sm text-zinc-300 leading-relaxed">{analysis.weaknesses}</p>
+            <p className="text-sm leading-relaxed" style={{ color: 'rgb(var(--text-secondary))' }}>{analysis.weaknesses}</p>
           </div>
         )}
       </div>
@@ -200,7 +187,7 @@ export default function ProfessorNote({ rawText }: Props) {
             </svg>
             <span className="text-[11px] font-semibold uppercase tracking-wider text-red-400">Fallacies Detected</span>
           </div>
-          <p className="text-sm text-zinc-300 leading-relaxed">{analysis.fallacies}</p>
+          <p className="text-sm leading-relaxed" style={{ color: 'rgb(var(--text-secondary))' }}>{analysis.fallacies}</p>
         </div>
       )}
 
@@ -214,25 +201,40 @@ export default function ProfessorNote({ rawText }: Props) {
               </svg>
               <span className="text-[11px] font-semibold uppercase tracking-wider text-debate-professor">Structural Assessment</span>
             </div>
-            <p className="text-sm text-zinc-300 leading-relaxed">{analysis.structural}</p>
+            <p className="text-sm leading-relaxed" style={{ color: 'rgb(var(--text-secondary))' }}>{analysis.structural}</p>
           </div>
         )}
 
         <div className="glass rounded-2xl p-5 space-y-4">
-          {/* Confidence verdict */}
-          {analysis.verdict.confidence && (
+          {analysis.verdict.confidence && (() => {
+            const conf = getConfidenceColor(analysis.verdict.confidence);
+            return (
             <div>
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500 mb-2">Epistemic Verdict</p>
-              <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium border ${getConfidenceColor(analysis.verdict.confidence)}`}>
+              <p className="text-[11px] font-semibold uppercase tracking-wider mb-2" style={{ color: 'rgb(var(--text-muted))' }}>Epistemic Verdict</p>
+              <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium border ${conf.color} ${conf.bg} ${conf.border}`}>
                 Confidence: {analysis.verdict.confidence}
               </span>
+              {/* Confidence meter */}
+              <div className="mt-3">
+                <div className="h-1.5 rounded-full bg-white/5 overflow-hidden">
+                  <div
+                    className={`h-full rounded-full transition-all duration-700 ${conf.bar}`}
+                    style={{ width: `${conf.pct}%` }}
+                  />
+                </div>
+                <div className="flex justify-between mt-1">
+                  <span className="text-[10px]" style={{ color: 'rgb(var(--text-muted))' }}>Weak</span>
+                  <span className="text-[10px]" style={{ color: 'rgb(var(--text-muted))' }}>Strong</span>
+                </div>
+              </div>
             </div>
-          )}
+            );
+          })()}
 
           {analysis.verdict.improvement && (
             <div>
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500 mb-1">Key Improvement</p>
-              <p className="text-sm text-zinc-300 leading-relaxed">{analysis.verdict.improvement}</p>
+              <p className="text-[11px] font-semibold uppercase tracking-wider mb-1" style={{ color: 'rgb(var(--text-muted))' }}>Key Improvement</p>
+              <p className="text-sm leading-relaxed" style={{ color: 'rgb(var(--text-secondary))' }}>{analysis.verdict.improvement}</p>
             </div>
           )}
         </div>
@@ -247,7 +249,7 @@ export default function ProfessorNote({ rawText }: Props) {
             </svg>
             <span className="text-[11px] font-semibold uppercase tracking-wider text-debate-professor/70">Recommended Reading</span>
           </div>
-          <p className="text-sm text-zinc-300 leading-relaxed">{analysis.reading}</p>
+          <p className="text-sm leading-relaxed" style={{ color: 'rgb(var(--text-secondary))' }}>{analysis.reading}</p>
         </div>
       )}
     </div>

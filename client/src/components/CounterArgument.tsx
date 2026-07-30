@@ -21,13 +21,11 @@ function parseCounterArguments(text: string): {
   const counters: ParsedCounter[] = [];
   let closing = '';
 
-  // Extract thesis
   const thesisMatch = text.match(/##\s*THESIS\s*\n([\s\S]*?)(?=###\s*Counterargument|\n##)/i);
   if (thesisMatch) {
     thesis = thesisMatch[1].trim();
   }
 
-  // Extract counterarguments
   const counterRegex = /###\s*Counterargument\s*(\d+):\s*(.*?)\n\*\*Claim:\*\*\s*([\s\S]*?)\n\*\*Evidence:\*\*\s*([\s\S]*?)\n\*\*Impact:\*\*\s*([\s\S]*?)(?=###\s*Counterargument|\n##\s*CLOSING\s*STATEMENT|\n##\s*CLOSING|$)/gi;
 
   let match;
@@ -41,7 +39,6 @@ function parseCounterArguments(text: string): {
     });
   }
 
-  // Extract closing
   const closingMatch = text.match(/##\s*CLOSING\s*STATEMENT\s*\n([\s\S]*?)$/i);
   if (closingMatch) {
     closing = closingMatch[1].trim();
@@ -54,7 +51,6 @@ export default function CounterArgument({ rawText }: Props) {
   const { thesis, counters, closing } = parseCounterArguments(rawText);
   const [expandedId, setExpandedId] = useState<string | null>(counters[0]?.id || null);
 
-  // Fallback: raw text display if parsing failed
   if (counters.length === 0) {
     return (
       <div className="glass rounded-2xl p-6">
@@ -65,7 +61,6 @@ export default function CounterArgument({ rawText }: Props) {
 
   return (
     <div className="space-y-4">
-      {/* Thesis card */}
       {thesis && (
         <div className="glass rounded-2xl p-5 border-l-2 border-debate-oxford/50">
           <div className="flex items-center gap-2 mb-2">
@@ -76,11 +71,10 @@ export default function CounterArgument({ rawText }: Props) {
             </div>
             <span className="text-xs font-medium text-debate-oxford uppercase tracking-wide">Thesis Identified</span>
           </div>
-          <p className="text-sm text-zinc-300 leading-relaxed">{thesis}</p>
+          <p className="text-sm leading-relaxed" style={{ color: 'rgb(var(--text-secondary))' }}>{thesis}</p>
         </div>
       )}
 
-      {/* Counterargument cards */}
       {counters.map((counter, i) => (
         <div
           key={counter.id}
@@ -95,14 +89,12 @@ export default function CounterArgument({ rawText }: Props) {
               <div className="w-8 h-8 rounded-xl bg-debate-oxford/10 flex items-center justify-center shrink-0">
                 <span className="text-sm font-bold text-debate-oxford">{i + 1}</span>
               </div>
-              <h3 className="text-[15px] font-semibold text-white">{counter.title}</h3>
+              <h3 className="text-[15px] font-semibold" style={{ color: 'rgb(var(--text))' }}>{counter.title}</h3>
             </div>
             <svg
-              className={`w-5 h-5 text-zinc-500 transition-transform duration-300 ${expandedId === counter.id ? 'rotate-180' : ''}`}
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
+              className={`w-5 h-5 transition-transform duration-300 ${expandedId === counter.id ? 'rotate-180' : ''}`}
+              style={{ color: 'rgb(var(--text-muted))' }}
+              fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
             >
               <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
             </svg>
@@ -114,28 +106,27 @@ export default function CounterArgument({ rawText }: Props) {
                 <div className="flex items-center gap-2 mb-1.5">
                   <span className="text-[11px] font-semibold uppercase tracking-wider text-debate-oxford/70">Claim</span>
                 </div>
-                <p className="text-sm text-white leading-relaxed">{counter.claim}</p>
+                <p className="text-sm leading-relaxed" style={{ color: 'rgb(var(--text))' }}>{counter.claim}</p>
               </div>
 
               <div className="border-t border-surface-border pt-4">
                 <div className="flex items-center gap-2 mb-1.5">
                   <span className="text-[11px] font-semibold uppercase tracking-wider text-amber-400/70">Evidence</span>
                 </div>
-                <p className="text-sm text-zinc-300 leading-relaxed">{counter.evidence}</p>
+                <p className="text-sm leading-relaxed" style={{ color: 'rgb(var(--text-secondary))' }}>{counter.evidence}</p>
               </div>
 
               <div className="border-t border-surface-border pt-4">
                 <div className="flex items-center gap-2 mb-1.5">
                   <span className="text-[11px] font-semibold uppercase tracking-wider text-emerald-400/70">Impact</span>
                 </div>
-                <p className="text-sm text-zinc-300 leading-relaxed">{counter.impact}</p>
+                <p className="text-sm leading-relaxed" style={{ color: 'rgb(var(--text-secondary))' }}>{counter.impact}</p>
               </div>
             </div>
           )}
         </div>
       ))}
 
-      {/* Closing statement */}
       {closing && (
         <div className="glass rounded-2xl p-5 bg-debate-oxford/5 border border-debate-oxford/20 mt-6">
           <div className="flex items-center gap-2 mb-2">
@@ -144,7 +135,7 @@ export default function CounterArgument({ rawText }: Props) {
             </svg>
             <span className="text-[11px] font-semibold uppercase tracking-wider text-debate-oxford/70">Closing Statement</span>
           </div>
-          <p className="text-sm text-zinc-300 leading-relaxed italic">{closing}</p>
+          <p className="text-sm leading-relaxed italic" style={{ color: 'rgb(var(--text-secondary))' }}>{closing}</p>
         </div>
       )}
     </div>

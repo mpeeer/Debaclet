@@ -2,13 +2,87 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
+/* Base (dark) theme variables — RGB channels for Tailwind opacity */
+:root,
+[data-theme='dark'] {
+  --bg: 10 10 11;
+  --bg-raised: 17 17 19;
+  --bg-overlay: 24 24 27;
+  --border: 39 39 42;
+  --text: 255 255 255;
+  --text-secondary: 161 161 170;
+  --text-muted: 82 82 91;
+  --accent: 59 130 246;
+  --accent-soft: rgba(59, 130, 246, 0.15);
+  --oxford: 8 145 178;
+  --oxford-soft: rgba(8, 145, 178, 0.12);
+  --professor: 124 58 237;
+  --professor-soft: rgba(124, 58, 237, 0.12);
+  --gradient-1: rgba(59, 130, 246, 0.08);
+  --gradient-2: rgba(124, 58, 237, 0.06);
+  color-scheme: dark;
+}
+
+[data-theme='light'] {
+  --bg: 250 250 250;
+  --bg-raised: 255 255 255;
+  --bg-overlay: 244 244 245;
+  --border: 228 228 231;
+  --text: 9 9 11;
+  --text-secondary: 82 82 91;
+  --text-muted: 161 161 170;
+  --accent: 37 99 235;
+  --accent-soft: rgba(37, 99, 235, 0.1);
+  --oxford: 14 116 144;
+  --oxford-soft: rgba(14, 116, 144, 0.1);
+  --professor: 124 58 237;
+  --professor-soft: rgba(124, 58, 237, 0.1);
+  --gradient-1: rgba(37, 99, 235, 0.04);
+  --gradient-2: rgba(124, 58, 237, 0.03);
+  color-scheme: light;
+}
+
+[data-theme='slate'] {
+  --bg: 15 23 42;
+  --bg-raised: 30 41 59;
+  --bg-overlay: 30 41 59;
+  --border: 51 65 85;
+  --text: 241 245 249;
+  --text-secondary: 148 163 184;
+  --text-muted: 71 85 105;
+  --accent: 56 189 248;
+  --accent-soft: rgba(56, 189, 248, 0.15);
+  --oxford: 34 211 238;
+  --oxford-soft: rgba(34, 211, 238, 0.12);
+  --professor: 167 139 250;
+  --professor-soft: rgba(167, 139, 250, 0.12);
+  --gradient-1: rgba(56, 189, 248, 0.06);
+  --gradient-2: rgba(167, 139, 250, 0.04);
+  color-scheme: dark;
+}
+
+[data-theme='amber'] {
+  --bg: 28 25 23;
+  --bg-raised: 41 37 36;
+  --bg-overlay: 41 37 36;
+  --border: 68 64 60;
+  --text: 250 250 249;
+  --text-secondary: 168 162 158;
+  --text-muted: 87 83 78;
+  --accent: 245 158 11;
+  --accent-soft: rgba(245, 158, 11, 0.15);
+  --oxford: 217 119 6;
+  --oxford-soft: rgba(217, 119, 6, 0.12);
+  --professor: 251 191 36;
+  --professor-soft: rgba(251, 191, 36, 0.12);
+  --gradient-1: rgba(245, 158, 11, 0.06);
+  --gradient-2: rgba(217, 119, 6, 0.04);
   color-scheme: dark;
 }
 
 * {
   scrollbar-width: thin;
-  scrollbar-color: #27272a transparent;
+  scrollbar-color: rgb(var(--border)) transparent;
 }
 
 *::-webkit-scrollbar {
@@ -20,63 +94,53 @@
 }
 
 *::-webkit-scrollbar-thumb {
-  background: #27272a;
+  background: rgb(var(--border));
   border-radius: 3px;
 }
 
 body {
-  @apply bg-surface min-h-screen;
+  background-color: rgb(var(--bg));
+  min-height: 100vh;
   background-image:
-    radial-gradient(ellipse 80% 60% at 50% -20%, rgba(59, 130, 246, 0.08), transparent),
-    radial-gradient(ellipse 60% 50% at 80% 80%, rgba(124, 58, 237, 0.06), transparent);
+    radial-gradient(ellipse 80% 60% at 50% -20%, var(--gradient-1), transparent),
+    radial-gradient(ellipse 60% 50% at 80% 80%, var(--gradient-2), transparent);
 }
 
-/* Smooth focus ring */
 input:focus-visible,
 textarea:focus-visible,
 button:focus-visible {
-  @apply outline-none ring-2 ring-accent/50 ring-offset-2 ring-offset-surface;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(var(--accent) / 0.5), 0 0 0 4px rgb(var(--bg));
 }
 
-/* Glass morphism utility */
+/* Glass morphism */
 .glass {
-  @apply bg-surface-overlay/70 backdrop-blur-xl border border-surface-border;
+  background: color-mix(in srgb, rgb(var(--bg-overlay)) 70%, transparent);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgb(var(--border));
 }
 
 .glass-raised {
-  @apply bg-surface-raised/80 backdrop-blur-xl border border-surface-border;
+  background: color-mix(in srgb, rgb(var(--bg-raised)) 80%, transparent);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgb(var(--border));
 }
 
-/* Fade-in animation */
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateX(-12px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
+  from { opacity: 0; transform: translateX(-12px); }
+  to { opacity: 1; transform: translateX(0); }
 }
 
 @keyframes pulse-glow {
-  0%, 100% {
-    box-shadow: 0 0 20px rgba(59, 130, 246, 0.1);
-  }
-  50% {
-    box-shadow: 0 0 40px rgba(59, 130, 246, 0.25);
-  }
+  0%, 100% { box-shadow: 0 0 20px var(--accent-soft); }
+  50% { box-shadow: 0 0 40px var(--accent-soft); }
 }
 
 .animate-fade-in {
@@ -93,25 +157,44 @@ button:focus-visible {
 
 /* Typography */
 .prose-debate {
-  @apply text-[15px] leading-relaxed text-zinc-200;
+  font-size: 15px;
+  line-height: 1.7;
+  color: color-mix(in srgb, rgb(var(--text)) 85%, transparent);
 }
 
 .prose-debate strong {
-  @apply text-white font-semibold;
+  color: rgb(var(--text));
+  font-weight: 600;
 }
 
 .prose-debate h3 {
-  @apply text-lg font-semibold text-white mt-6 mb-2 first:mt-0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: rgb(var(--text));
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+.prose-debate h3:first-child {
+  margin-top: 0;
 }
 
 .prose-debate h2 {
-  @apply text-xl font-bold text-white mt-8 mb-3;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: rgb(var(--text));
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
 }
 
 .prose-debate ul {
-  @apply list-disc pl-5 space-y-1;
+  list-style: disc;
+  padding-left: 1.25rem;
+}
+
+.prose-debate ul li {
+  margin-bottom: 0.25rem;
 }
 
 .prose-debate p {
-  @apply mb-3;
+  margin-bottom: 0.75rem;
 }
