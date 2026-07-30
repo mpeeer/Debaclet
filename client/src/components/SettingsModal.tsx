@@ -4,6 +4,7 @@ interface Props {
   open: boolean;
   onClose: () => void;
   onSaved: () => void;
+  staticMode?: boolean;
 }
 
 interface ConfigState {
@@ -19,7 +20,7 @@ const PROVIDERS = [
   { id: 'anthropic', label: 'Anthropic', desc: 'Cloud API. Needs an API key. No install required.', models: ['claude-3-5-haiku-latest', 'claude-3-5-sonnet-latest', 'claude-3-opus-latest'] },
 ];
 
-export default function SettingsModal({ open, onClose, onSaved }: Props) {
+export default function SettingsModal({ open, onClose, onSaved, staticMode }: Props) {
   const [config, setConfig] = useState<ConfigState>({ provider: PROVIDERS[0].id, model: PROVIDERS[0].models[0], hasKey: false });
   const [apiKey, setApiKey] = useState('');
   const [loading, setLoading] = useState(true);
@@ -28,8 +29,15 @@ export default function SettingsModal({ open, onClose, onSaved }: Props) {
   const [testResult, setTestResult] = useState<{ ok: boolean; msg: string } | null>(null);
   const [testing, setTesting] = useState(false);
 
+  const providers = staticMode ? PROVIDERS.filter((p) => p.id === 'webllm') : PROVIDERS;
+
   useEffect(() => {
     if (!open) return;
+    if (staticMode) {
+      setConfig({ provider: 'webllm', model: PROVIDERS[0].models[0], hasKey: false });
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     fetch('/api/config')
       .then((r) => r.json())
@@ -38,20 +46,28 @@ export default function SettingsModal({ open, onClose, onSaved }: Props) {
         setLoading(false);
       })
       .catch(() => {
-        setConfig({ provider: PROVIDERS[0].id, model: PROVIDERS[0].models[0], hasKey: false });
+        setConfig({ provider: providers[0].id, model: providers[0].models[0], hasKey: false });
         setLoading(false);
       });
-  }, [open]);
+  }, [open, staticMode]);
 
   if (!open) return null;
 
-  const currentProvider = PROVIDERS.find((p) => p.id === config.provider) || PROVIDERS[0];
+  const currentProvider = providers.find((p) => p.id === config.provider) || providers[0];
   const needsApiKey = currentProvider.id === 'openai' || currentProvider.id === 'anthropic';
   const isBrowser = currentProvider.id === 'webllm';
 
   const handleSave = async () => {
     setStatus('saving');
     setErrorMsg('');
+
+    // In static mode, just apply config locally — no server to save to
+    if (staticMode) {
+      setStatus('saved');
+      onSaved();
+      setTimeout(() => { onClose(); setStatus('idle'); }, 600);
+      return;
+    }
 
     try {
       const body: Record<string, string> = { provider: config.provider, model: config.model };
@@ -115,7 +131,7 @@ export default function SettingsModal({ open, onClose, onSaved }: Props) {
               <label className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'rgb(var(--text-muted))' }}>
                 AI Provider
               </label>
-              {PROVIDERS.map((p) => (
+              {providers.map((p) => (
                 <button
                   key={p.id}
                   onClick={() => setConfig({ provider: p.id, model: p.models[0], hasKey: config.hasKey })}
@@ -157,7 +173,8 @@ export default function SettingsModal({ open, onClose, onSaved }: Props) {
               </select>
             </div>
 
-            {/* Test connection */}
+            {/* Test connection — only when server is available */}
+            {!staticMode && (
             <div className="mb-5">
               <button
                 onClick={async () => {
@@ -185,6 +202,7 @@ export default function SettingsModal({ open, onClose, onSaved }: Props) {
                 </p>
               )}
             </div>
+            )}
 
         {/* Browser info */}
         {isBrowser && (
@@ -224,10 +242,10 @@ export default function SettingsModal({ open, onClose, onSaved }: Props) {
 
             <button
               onClick={handleSave}
-              disabled={status === 'saving' || (needsApiKey && !apiKey && !config.hasKey)}
+              disabled={status === 'saving' || (!staticMode && needsApiKey && !apiKey && !config.hasKey)}
               className={`
                 w-full py-3 rounded-xl font-medium text-sm transition-all duration-300
-                ${status === 'saving' || (needsApiKey && !apiKey && !config.hasKey)
+                ${status === 'saving' || (!staticMode && needsApiKey && !apiKey && !config.hasKey)
                   ? 'bg-white/5 text-zinc-600 cursor-not-allowed'
                   : status === 'saved'
                     ? 'bg-emerald-500/20 text-emerald-400'

@@ -65,11 +65,21 @@ export default function App() {
   const [compareMode, setCompareMode] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState('');
+  const [staticMode, setStaticMode] = useState(true);
   const resultsRef = useRef<HTMLDivElement>(null);
 
   const refreshConfig = useCallback(async () => {
-    try { const cfg = await fetch('/api/config').then((r) => r.json()); setCachedConfig({ provider: cfg.provider, model: cfg.model }); } catch { /* keep */ }
+    try { const cfg = await fetch('/api/config').then((r) => r.json()); setCachedConfig({ provider: cfg.provider, model: cfg.model }); setStaticMode(false); } catch { /* keep defaults, stay in static mode */ }
   }, []);
+
+  // Periodically retry server connection if in static mode (dev only)
+  useEffect(() => {
+    if (!staticMode || !import.meta.env.DEV) return;
+    const id = setInterval(() => {
+      fetch('/api/health').then((r) => r.json()).then((h) => { if (h.ok) refreshConfig(); }).catch(() => {});
+    }, 30000);
+    return () => clearInterval(id);
+  }, [staticMode, refreshConfig]);
 
   useEffect(() => { refreshConfig(); }, [refreshConfig]);
 
@@ -143,8 +153,8 @@ export default function App() {
   return (
     <ThemeProvider>
       <div className="min-h-screen flex flex-col" style={{ backgroundColor: 'rgb(var(--bg))', color: 'rgb(var(--text))' }}>
-        <Header onOpenSettings={() => setSettingsOpen(true)} provider={cachedConfig.provider} />
-        <SettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} onSaved={handleSettingsSaved} />
+        <Header onOpenSettings={() => setSettingsOpen(true)} provider={cachedConfig.provider} staticMode={staticMode} />
+        <SettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} onSaved={handleSettingsSaved} staticMode={staticMode} />
 
         <main className="flex-1 flex flex-col items-center px-4 sm:px-6 lg:px-8 pb-24">
           <div className="w-full max-w-3xl mt-12 sm:mt-20">
@@ -198,8 +208,8 @@ export default function App() {
 
                     <div className="space-y-2">
                       {history.slice(0, 5).map((entry) => (
-                        <div key={entry.id} className={`w-full glass rounded-xl p-3.5 hover:bg-white/[0.03] transition-colors flex items-center justify-between group ${compareIds.has(entry.id) ? 'ring-1 ring-accent/50' : ''}`}>
-                          <div className="flex items-center gap-3 min-w-0 flex-1" onClick={() => compareMode ? toggleCompare(entry.id) : handleRevisit(entry)} style={{ cursor: 'pointer' }}>
+                        <button key={entry.id} onClick={() => compareMode ? toggleCompare(entry.id) : handleRevisit(entry)} className={`w-full glass rounded-xl p-3.5 hover:bg-white/[0.03] transition-colors flex items-center justify-between group text-left focus-visible:ring-2 focus-visible:ring-accent focus:outline-none ${compareIds.has(entry.id) ? 'ring-1 ring-accent/50' : ''}`}>
+                          <div className="flex items-center gap-3 min-w-0 flex-1">
                             {compareMode && (
                               <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 transition-colors ${compareIds.has(entry.id) ? 'border-accent bg-accent/10' : 'border-surface-border'}`}>
                                 {compareIds.has(entry.id) && <svg className="w-3 h-3 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>}
@@ -241,7 +251,7 @@ export default function App() {
                               <svg className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" style={{ color: 'rgb(var(--text-muted))' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
                             )}
                           </div>
-                        </div>
+                        </button>
                       ))}
                     </div>
 

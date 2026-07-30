@@ -1,78 +1,107 @@
-# 🧠 Debalect
+# Debalect
 
-**Open-source cognitive training platform.** Submit your argument. Face a world-class Oxford Union debate opponent and receive rigorous logical analysis from a university professor — all running locally on your machine.
+**Cognitive training platform.** Drop your essay. Face a world-class Oxford Union debate opponent and receive rigorous logical analysis from a university professor.
 
-> No cloud. No API keys. No AI fluff. Just your ideas against the best counterarguments, powered by local AI via [Ollama](https://ollama.com).
+> No install. No account. No API key. Just your browser — or run locally with Ollama, OpenAI, or Anthropic.
+
+[![Deploy to GitHub Pages](https://github.com/actions/workflows/pages/pages-build-deployment/badge.svg)](https://github.com/features/actions)
 
 ---
 
-## Architecture
+## How It Works
 
 ```
-┌────────────────────────────────────────────────────┐
-│                  Debalect                          │
-│                                                    │
-│  ┌──────────────┐          ┌───────────────────┐  │
-│  │   Frontend   │  HTTP    │     Backend       │  │
-│  │  React+Vite  │◄────────►│  Express+Node.js  │  │
-│  │  TailwindCSS │  :5173   │  Port :3001       │  │
-│  └──────────────┘          └────────┬──────────┘  │
-│                                     │              │
-│                           ┌─────────▼──────────┐  │
-│                           │      Ollama        │  │
-│                           │  Local LLM Server  │  │
-│                           │  Port :11434       │  │
-│                           └────────────────────┘  │
-│                                                    │
-│  Two AI Personas:                                  │
-│  ▸ Oxford Union Debater — Counterarguments         │
-│  ▸ Logic Professor — Logical analysis              │
-└────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────┐
+│                    Debalect                         │
+│                                                     │
+│  Your Essay In  ──►  Two AI Personas Run in Parallel│
+│                                                     │
+│  ┌─────────────────────┐  ┌───────────────────────┐ │
+│  │  Oxford Union       │  │  Logic Professor      │ │
+│  │  Debater            │  │                       │ │
+│  │  • Counterarguments │  │  • Thesis extraction  │ │
+│  │  • Evidence/impact  │  │  • Fallacy detection  │ │
+│  │  • Real-world cases │  │  • Epistemic verdict  │ │
+│  │  • Rhetorical force │  │  • Confidence meter   │ │
+│  └─────────────────────┘  └───────────────────────┘ │
+│                                                     │
+│  Output: Structured cards, quality scores, export   │
+└─────────────────────────────────────────────────────┘
 ```
+
+## AI Providers
+
+Debalect supports four AI backends. Pick what works for you.
+
+| Provider | Setup | Key | Cost | Privacy | Speed |
+|----------|-------|-----|------|---------|-------|
+| **Browser** (WebLLM) | None | None | Free | Full (on-device) | Model-dependent |
+| **Ollama** | Install once | None | Free | Full | Fast |
+| **OpenAI** | None | API key | Pay-per-use | Cloud | Fast |
+| **Anthropic** | None | API key | Pay-per-use | Cloud | Fast |
+
+**The Browser provider is the headline.** Models run directly in your browser via WebGPU. The first debate downloads the model (~2 GB, cached in IndexedDB). After that, all inference happens on your device with zero latency to any server. Requires Chrome 113+ or Edge 113+.
+
+The API key providers (OpenAI, Anthropic) are useful when you want stronger models or don't have a WebGPU-capable browser. Debalect's value isn't the model — it's the **cognitive training format**: dual-persona debate, structured parsing, evidence/impact breakdowns, fallacy detection, and epistemic verdicts with confidence meters.
 
 ## Features
 
-- **📄 File Upload** — Submit `.txt`, `.md`, `.pdf`, or `.docx` files (drag & drop)
-- **📝 Text Paste** — Or paste your essay directly
-- **🎭 Dual Analysis** — Both the debater and professor analyze in parallel
-- **🔍 Structured Output** — Parsed and beautifully displayed counterarguments with collapsible cards
-- **🎨 Apple/Windows Minimal Design** — Dark theme, glass morphism, smooth animations
-- **🔒 100% Local** — Everything runs on your machine; your ideas never leave it
+- **File upload** — Drag and drop `.txt` or `.md` files, with live preview
+- **Dual-panel view** — Side-by-side debater and professor panels, or tabbed switching
+- **Counterargument cards** — Parsed with evidence, impact, and real-world examples
+- **Fallacy detection** — Ad hominem, straw man, false dilemma, and more
+- **Confidence meter** — Visual gauge showing the professor's epistemic certainty
+- **Quality scoring** — Every debate gets a 0–100 score from counter count, confidence, and fallacy presence
+- **Score trend chart** — Bar chart showing progression over your last 10 debates
+- **Debate comparison** — Select two past debates and view them side-by-side
+- **Session history** — Last 20 debates with rename, revisit, and clear
+- **Export as Markdown** — Download any debate as a `.md` file
+- **Theme system** — Dark, Light, Oxford Blue, Professor Purple, and System (auto)
+- **No BS** — No ads, no tracking, no accounts, no AI fluff
 
-## Prerequisites
+## Deploy to GitHub Pages
+
+Debalect works as a **fully static site**. Push to `main` and GitHub Actions deploys automatically.
+
+1. Fork or push this repo to GitHub
+2. Go to **Settings → Pages → Build and deployment → Source: GitHub Actions**
+3. Push to `main` — the workflow in `.github/workflows/deploy.yml` builds and deploys
+
+The deployed site uses only the Browser provider (WebLLM). No backend required.
+
+**Manual build:**
+```bash
+cd client
+npm install
+npx vite build --base=/your-repo-name/
+# Output in client/dist/ — deploy to any static host
+```
+
+## Local Development
+
+### Prerequisites
 
 - **Node.js** ≥ 18
-- **Ollama** installed and running with a model pulled
 
-### Install Ollama
+### Quick Start (Browser-only)
+
+Run the frontend alone — no backend needed if you're using the Browser provider:
 
 ```bash
-# macOS / Linux
-curl -fsSL https://ollama.com/install.sh | sh
-
-# Windows
-# Download from https://ollama.com/download/windows
+cd client
+npm install
+npm run dev
+# Opens http://localhost:5173
 ```
 
-### Pull a Model
+The app auto-detects there's no server and locks to Browser mode.
+
+### Quick Start (with Backend)
+
+For Ollama, OpenAI, or Anthropic providers:
 
 ```bash
-ollama pull llama3.1     # Recommended (~8B params, great quality)
-# or
-ollama pull mistral       # Faster, smaller (~7B params)
-# or
-ollama pull llama3.2      # Lightweight (~3B params)
-```
-
-Set the model in your environment:
-```bash
-export OLLAMA_MODEL=llama3.1   # default: llama3.1
-```
-
-## Quick Start
-
-```bash
-# 1. Install dependencies
+# 1. Install all dependencies
 npm run install:all
 
 # 2. Start both frontend and backend
@@ -82,76 +111,64 @@ npm run dev
 # Backend:  http://localhost:3001
 ```
 
-Or run them separately:
-```bash
-# Terminal 1 — Backend
-npm run dev:server
-
-# Terminal 2 — Frontend
-npm run dev:client
-```
-
-## Usage
-
-1. **Ensure Ollama is running** — `ollama serve` in a terminal (or use the Ollama app)
-2. Open `http://localhost:5173`
-3. Paste your essay or drag a file into the upload zone
-4. Click **Begin Debate**
-5. Browse the counterarguments (expand each card) and professor's logical analysis
-6. Click **New debate** to start fresh
-
-## How It Works
-
-1. Your text is sent to the Express backend
-2. The backend sends it to Ollama with **two different system prompts** in parallel:
-   - **Oxford Union Debater** — Trained to find the strongest counterarguments with evidence, rhetoric, and real-world examples
-   - **Logic Professor** — Trained to reconstruct the argument, identify premises/assumptions, detect fallacies, and give an epistemic verdict
-3. Responses are parsed and displayed in a structured UI
-
-## Customization
-
-### Change the LLM Model
+### Ollama Setup
 
 ```bash
-OLLAMA_MODEL=mistral npm run dev
+# Install Ollama: https://ollama.com/download
+ollama pull llama3.1     # Recommended (~8B params)
+# or
+ollama pull llama3.2      # Lightweight (~3B params)
+
+# Set model via env var (optional)
+export OLLAMA_MODEL=llama3.1
 ```
 
-### Change Ollama Host
+### OpenAI / Anthropic Setup
 
+No install needed. Open Settings (gear icon) in the app, select your provider, and paste your API key. The key stays in server memory only — never written to disk.
+
+Start the server with your key (optional, alternative to UI):
 ```bash
-OLLAMA_HOST=http://192.168.1.100:11434 npm run dev
+PROVIDER=openai MODEL=gpt-4o-mini OPENAI_API_KEY=sk-... npm run dev:server
 ```
-
-### Customize the Personas
-
-Edit `server/src/services/prompts.ts` to modify the system prompts for the debater or professor.
 
 ## Project Structure
 
 ```
 debalect/
-├── client/                  # React + Vite + TailwindCSS
+├── client/                          # React + Vite + TailwindCSS
+│   ├── public/
+│   │   └── 404.html                 # SPA routing for GitHub Pages
 │   ├── src/
 │   │   ├── components/
-│   │   │   ├── Header.tsx           # Sticky glass header
-│   │   │   ├── InputPanel.tsx       # Text area + file upload
-│   │   │   ├── DebateView.tsx       # Tab switcher (debater/professor)
+│   │   │   ├── Header.tsx           # Sticky header + provider badge
+│   │   │   ├── InputPanel.tsx       # File upload with preview
+│   │   │   ├── DebateView.tsx       # Dual-panel / tabbed view
 │   │   │   ├── CounterArgument.tsx  # Parsed counterargument cards
-│   │   │   └── ProfessorNote.tsx    # Parsed logical analysis
-│   │   ├── App.tsx                  # Main state machine
-│   │   ├── types.ts                 # Shared types
-│   │   └── index.css                # Global styles + design tokens
+│   │   │   ├── ProfessorNote.tsx    # Logical analysis + confidence meter
+│   │   │   ├── SettingsModal.tsx    # Provider, model, API key config
+│   │   │   └── ThemeSwitcher.tsx    # 5-theme picker
+│   │   ├── context/
+│   │   │   └── ThemeContext.tsx      # Theme state management
+│   │   ├── services/
+│   │   │   ├── webllm.ts            # WebLLM engine (browser inference)
+│   │   │   └── prompts.ts           # Debater/professor system prompts
+│   │   ├── App.tsx                  # Main state machine + history + scoring
+│   │   ├── types.ts                 # Shared TypeScript types
+│   │   └── index.css                # Design tokens + global styles
 │   └── ...
-├── server/                  # Express + TypeScript
+├── server/                          # Express + TypeScript
 │   ├── src/
 │   │   ├── routes/
-│   │   │   └── debate.ts            # POST /api/debate endpoint
+│   │   │   └── debate.ts            # POST /api/debate + /api/config
 │   │   ├── services/
-│   │   │   ├── ollama.ts            # Ollama API client
-│   │   │   └── prompts.ts           # System prompts for both personas
-│   │   └── index.ts                 # Express server entry
+│   │   │   ├── providers.ts         # Ollama / OpenAI / Anthropic abstraction
+│   │   │   └── prompts.ts           # Server-side system prompts
+│   │   └── index.ts                 # Express entry
 │   └── ...
-└── package.json             # Root scripts
+├── .github/workflows/
+│   └── deploy.yml                   # Auto-deploy to GitHub Pages
+└── package.json                     # Root scripts
 ```
 
 ## License

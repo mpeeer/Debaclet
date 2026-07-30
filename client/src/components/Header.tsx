@@ -3,6 +3,7 @@ import ThemeSwitcher from './ThemeSwitcher';
 interface Props {
   onOpenSettings: () => void;
   provider?: string;
+  staticMode?: boolean;
 }
 
 const PROVIDER_LABELS: Record<string, string> = {
@@ -12,7 +13,7 @@ const PROVIDER_LABELS: Record<string, string> = {
   anthropic: 'Anthropic',
 };
 
-export default function Header({ onOpenSettings, provider }: Props) {
+export default function Header({ onOpenSettings, provider, staticMode }: Props) {
   const label = provider ? (PROVIDER_LABELS[provider] || provider) : '';
 
   return (
@@ -36,7 +37,7 @@ export default function Header({ onOpenSettings, provider }: Props) {
                 color: 'rgb(var(--accent))',
               }}>
               <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: 'rgb(var(--accent))' }} />
-              {label}
+              {label}{staticMode ? ' · Static' : ''}
             </span>
           )}
         </div>
