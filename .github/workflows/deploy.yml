@@ -37,15 +37,18 @@ jobs:
         env:
           VITE_BASE: /${{ github.event.repository.name }}/
 
-      - name: Add .nojekyll and 404.html
+      - name: Copy to docs folder
         run: |
-          touch client/dist/.nojekyll
-          cp client/dist/index.html client/dist/404.html
+          rm -rf docs
+          mkdir -p docs
+          cp -r client/dist/* docs/
+          touch docs/.nojekyll
+          cp docs/index.html docs/404.html
 
-      - name: Deploy to gh-pages branch
-        uses: peaceiris/actions-gh-pages@v3
+      - name: Commit and push docs
+        uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: client/dist
-          publish_branch: gh-pages
-          force_orphan: true
+          commit_message: Deploy to GitHub Pages
+          file_pattern: docs/
+          skip_fetch: true
+          skip_checkout: true
