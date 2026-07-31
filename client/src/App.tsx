@@ -7,19 +7,11 @@ import DebateView from './components/DebateView';
 import SettingsModal from './components/SettingsModal';
 import ErrorBoundary from './components/ErrorBoundary';
 import { queryBrowserAI, isWebGPUSupported } from './services/webllm';
+import { readFileContent } from './services/fileReader';
 import { DEBATER_PROMPT, PROFESSOR_PROMPT } from './services/prompts';
 
 function formatDate(ts: number): string {
   return new Date(ts).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-}
-
-function readFileAsText(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result as string);
-    reader.onerror = () => reject(new Error('Failed to read file'));
-    reader.readAsText(file);
-  });
 }
 
 function computeScore(result: DebateResult): DebateScore {
@@ -143,10 +135,7 @@ export default function App() {
 
         let text = _text;
         if (file) {
-          if (!file.name.match(/\.(txt|md)$/i) && !file.type.match(/text\/(plain|markdown)/)) {
-            throw new Error('Browser inference only supports .txt and .md files. For PDFs or .docx, use the Ollama or cloud backend.');
-          }
-          text = await readFileAsText(file);
+          text = await readFileContent(file);
         }
         if (!text || text.length < 50) throw new Error('Text is too short. Please provide at least 50 characters for meaningful debate.');
 

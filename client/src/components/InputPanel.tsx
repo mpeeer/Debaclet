@@ -1,4 +1,5 @@
 import { useState, useRef, DragEvent, useEffect } from 'react';
+import { readFileContent } from '../services/fileReader';
 
 interface Props {
   onSubmit: (text: string, file: File | null) => void;
@@ -12,25 +13,26 @@ export default function InputPanel({ onSubmit, isLoading, error }: Props) {
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const readPreview = (f: File) => {
-    const ext = f.name.split('.').pop()?.toLowerCase();
-    const isText = ext === 'txt' || ext === 'md' || f.type === 'text/plain' || f.type === 'text/markdown';
-    if (!isText) {
-      setPreview(null);
-      return;
+  const previewIdRef = useRef(0);
+
+  const readPreview = async (f: File) => {
+    const id = ++previewIdRef.current;
+    try {
+      const text = await readFileContent(f);
+      if (id === previewIdRef.current) {
+        setPreview(text.slice(0, 800));
+      }
+    } catch {
+      if (id === previewIdRef.current) {
+        setPreview(null);
+      }
     }
-    const reader = new FileReader();
-    reader.onload = () => {
-      const text = reader.result as string;
-      setPreview(text.slice(0, 800));
-    };
-    reader.readAsText(f);
   };
 
   const handleFileChange = (files: FileList | null) => {
     if (files && files[0]) {
       const f = files[0];
-      const validTypes = ['text/plain', 'text/markdown', 'application/pdf', '.txt', '.md', '.pdf', '.docx'];
+      const validTypes = ['text/plain', 'text/markdown', 'application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', '.txt', '.md', '.pdf', '.docx'];
       const ext = '.' + f.name.split('.').pop()?.toLowerCase();
       if (validTypes.includes(f.type) || validTypes.includes(ext)) {
         setFile(f);
