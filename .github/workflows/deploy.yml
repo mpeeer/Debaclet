@@ -42,8 +42,10 @@ jobs:
         env:
           VITE_BASE: /${{ github.event.repository.name }}/
 
-      - name: Copy index.html to 404.html for SPA routing
-        run: cp client/dist/index.html client/dist/404.html
+      - name: Add .nojekyll and 404.html for SPA routing
+        run: |
+          touch client/dist/.nojekyll
+          cp client/dist/index.html client/dist/404.html
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
