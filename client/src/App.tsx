@@ -5,6 +5,7 @@ import Header from './components/Header';
 import InputPanel from './components/InputPanel';
 import DebateView from './components/DebateView';
 import SettingsModal from './components/SettingsModal';
+import ErrorBoundary from './components/ErrorBoundary';
 import { queryBrowserAI, isWebGPUSupported } from './services/webllm';
 import { DEBATER_PROMPT, PROFESSOR_PROMPT } from './services/prompts';
 
@@ -156,6 +157,8 @@ export default function App() {
         <Header onOpenSettings={() => setSettingsOpen(true)} provider={cachedConfig.provider} staticMode={staticMode} />
         <SettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} onSaved={handleSettingsSaved} staticMode={staticMode} />
 
+        <ErrorBoundary onReset={handleReset}>
+
         <main className="flex-1 flex flex-col items-center px-4 sm:px-6 lg:px-8 pb-24">
           <div className="w-full max-w-3xl mt-12 sm:mt-20">
             {state === 'idle' && (
@@ -304,7 +307,8 @@ export default function App() {
           </div>
         </main>
 
-        <footer className="text-center py-8 text-xs" style={{ color: 'rgb(var(--text-muted))' }}>Debalect &mdash; Cognitive training that runs in your browser. No install, no account, no API key needed.</footer>
+        <footer className="text-center py-8 text-xs" style={{ color: 'rgb(var(--text-muted))' }}>Debalect &mdash; {staticMode || cachedConfig.provider === 'webllm' ? 'Cognitive training that runs in your browser. No install, no account, no API key needed.' : `Powered by ${cachedConfig.provider === 'ollama' ? 'Ollama (local)' : cachedConfig.provider === 'openai' ? 'OpenAI' : 'Anthropic'}.`}</footer>
+        </ErrorBoundary>
       </div>
     </ThemeProvider>
   );

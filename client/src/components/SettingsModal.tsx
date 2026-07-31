@@ -14,10 +14,10 @@ interface ConfigState {
 }
 
 const PROVIDERS = [
-  { id: 'webllm', label: 'Browser', desc: 'Runs in your browser via WebGPU. No install, no key, fully private.', models: ['Llama-3.2-3B-Instruct-q4f16_1-MLC', 'Llama-3.2-1B-Instruct-q4f16_1-MLC', 'Gemma-2-2B-it-q4f16_1-MLC'] },
-  { id: 'ollama', label: 'Ollama', desc: 'Free, runs locally. Requires Ollama installed.', models: ['llama3.1', 'llama3.2', 'mistral', 'gemma2'] },
-  { id: 'openai', label: 'OpenAI', desc: 'Cloud API. Needs an API key. No install required.', models: ['gpt-4o-mini', 'gpt-4o', 'gpt-4-turbo'] },
-  { id: 'anthropic', label: 'Anthropic', desc: 'Cloud API. Needs an API key. No install required.', models: ['claude-3-5-haiku-latest', 'claude-3-5-sonnet-latest', 'claude-3-opus-latest'] },
+  { id: 'webllm', label: 'Browser', desc: 'Runs in your browser via WebGPU. No install, no key, fully private.', needsKey: false, models: ['Llama-3.2-3B-Instruct-q4f16_1-MLC', 'Llama-3.2-1B-Instruct-q4f16_1-MLC', 'Gemma-2-2B-it-q4f16_1-MLC'] },
+  { id: 'ollama', label: 'Ollama', desc: 'Free, runs locally. Requires Ollama installed.', needsKey: false, models: ['llama3.1', 'llama3.2', 'mistral', 'gemma2'] },
+  { id: 'openai', label: 'OpenAI', desc: 'Cloud API. Needs an API key. No install required.', needsKey: true, models: ['gpt-4o-mini', 'gpt-4o', 'gpt-4-turbo'] },
+  { id: 'anthropic', label: 'Anthropic', desc: 'Cloud API. Needs an API key. No install required.', needsKey: true, models: ['claude-3-5-haiku-latest', 'claude-3-5-sonnet-latest', 'claude-3-opus-latest'] },
 ];
 
 export default function SettingsModal({ open, onClose, onSaved, staticMode }: Props) {
@@ -54,7 +54,7 @@ export default function SettingsModal({ open, onClose, onSaved, staticMode }: Pr
   if (!open) return null;
 
   const currentProvider = providers.find((p) => p.id === config.provider) || providers[0];
-  const needsApiKey = currentProvider.id === 'openai' || currentProvider.id === 'anthropic';
+  const needsApiKey = currentProvider.needsKey;
   const isBrowser = currentProvider.id === 'webllm';
 
   const handleSave = async () => {

@@ -76,11 +76,3 @@ export function isWebGPUSupported(): boolean {
   if (!('gpu' in navigator)) return false;
   return true;
 }
-
-export function unloadEngine() {
-  if (engine) {
-    engine.unload();
-    engine = null;
-    currentModel = '';
-  }
-}
