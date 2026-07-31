@@ -37,18 +37,19 @@ jobs:
         env:
           VITE_BASE: /${{ github.event.repository.name }}/
 
-      - name: Copy to docs folder
+      - name: Copy built files to repo root
         run: |
           rm -rf docs
-          mkdir -p docs
-          cp -r client/dist/* docs/
-          touch docs/.nojekyll
-          cp docs/index.html docs/404.html
+          rm -f .nojekyll 404.html
+          rm -rf assets
+          cp -r client/dist/* .
+          touch .nojekyll
+          cp index.html 404.html
 
-      - name: Commit and push docs
+      - name: Commit and push to main
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: Deploy to GitHub Pages
-          file_pattern: docs/
+          file_pattern: '.nojekyll 404.html index.html assets/'
           skip_fetch: true
           skip_checkout: true
