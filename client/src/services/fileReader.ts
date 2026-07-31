@@ -1,7 +1,8 @@
 import * as pdfjsLib from 'pdfjs-dist';
+import workerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 
-// Use CDN-based worker to avoid bundling the large worker file
-pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
+// Bundle the worker locally instead of relying on a CDN
+pdfjsLib.GlobalWorkerOptions.workerSrc = workerUrl;
 
 /**
  * Read a file's text content. Handles:
