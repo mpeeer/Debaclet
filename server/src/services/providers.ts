@@ -52,12 +52,19 @@ async function queryOllama(systemPrompt: string, userText: string): Promise<stri
     options: { temperature: 0.7, top_p: 0.9 },
   };
 
-  const res = await fetch(`${config.ollamaHost}/api/generate`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-    signal: AbortSignal.timeout(120000),
-  });
+  let res: Response;
+  try {
+    res = await fetch(`${config.ollamaHost}/api/generate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(120000),
+    });
+  } catch (err) {
+    throw new Error(
+      `Could not reach Ollama at ${config.ollamaHost}. Is Ollama installed and running? Run 'ollama serve' in a terminal to start it.`
+    );
+  }
 
   if (!res.ok) {
     const errText = await res.text();
@@ -214,7 +221,9 @@ export async function checkHealth(): Promise<{
     case 'ollama':
     default:
       ok = await checkOllama();
-      message = ok ? 'Connected' : 'Ollama is not running. Start it with `ollama serve`.';
+      message = ok
+        ? 'Connected'
+        : `Ollama is not responding at ${config.ollamaHost}. Make sure Ollama is installed and running with 'ollama serve'.`;
       break;
     case 'webllm':
       ok = true;

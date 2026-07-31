@@ -40,12 +40,29 @@ export async function loadModel(
     currentModel = '';
   }
 
-  engine = await CreateMLCEngine(modelId, {
-    initProgressCallback: (report) => {
-      const pct = report.progress ? Math.round(report.progress * 100) : 0;
-      onProgress(report.text, pct);
-    },
-  });
+  try {
+    engine = await CreateMLCEngine(modelId, {
+      initProgressCallback: (report) => {
+        const pct = report.progress ? Math.round(report.progress * 100) : 0;
+        onProgress(report.text, pct);
+      },
+    });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    // Give user-friendly guidance for common WebLLM failures
+    if (msg.includes('networkError') || msg.includes('Failed to fetch') || msg.includes('NetworkError')) {
+      throw new Error(
+        'Cannot download the AI model. This may be caused by a firewall, VPN, ad blocker, or an unstable internet connection. ' +
+        'Try disabling your ad blocker, switching to a different network, or using the Ollama backend instead (Settings → Ollama).'
+      );
+    }
+    if (msg.includes('WebGPU') || msg.includes('gpu')) {
+      throw new Error(
+        'WebGPU is not available. Make sure you are using Chrome 113+, Edge 113+, or another WebGPU-compatible browser.'
+      );
+    }
+    throw new Error(`Failed to load browser AI model: ${msg}`);
+  }
 
   currentModel = modelId;
   return engine;

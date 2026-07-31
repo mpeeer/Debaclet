@@ -29,16 +29,13 @@ export default function SettingsModal({ open, onClose, onSaved, staticMode }: Pr
   const [testResult, setTestResult] = useState<{ ok: boolean; msg: string } | null>(null);
   const [testing, setTesting] = useState(false);
 
-  const providers = staticMode ? PROVIDERS.filter((p) => p.id === 'webllm') : PROVIDERS;
+  const providers = PROVIDERS;
 
   useEffect(() => {
     if (!open) return;
-    if (staticMode) {
-      setConfig({ provider: 'webllm', model: PROVIDERS[0].models[0], hasKey: false });
-      setLoading(false);
-      return;
-    }
     setLoading(true);
+
+    // Try server config first, fall back to localStorage, then default
     fetch('/api/config')
       .then((r) => r.json())
       .then((c: ConfigState) => {
@@ -46,10 +43,21 @@ export default function SettingsModal({ open, onClose, onSaved, staticMode }: Pr
         setLoading(false);
       })
       .catch(() => {
-        setConfig({ provider: providers[0].id, model: providers[0].models[0], hasKey: false });
+        // Fall back to localStorage
+        const saved = localStorage.getItem('debalect_config');
+        if (saved) {
+          try {
+            const parsed = JSON.parse(saved);
+            setConfig({ provider: parsed.provider || 'webllm', model: parsed.model || PROVIDERS[0].models[0], hasKey: false });
+          } catch {
+            setConfig({ provider: 'webllm', model: PROVIDERS[0].models[0], hasKey: false });
+          }
+        } else {
+          setConfig({ provider: 'webllm', model: PROVIDERS[0].models[0], hasKey: false });
+        }
         setLoading(false);
       });
-  }, [open, staticMode]);
+  }, [open]);
 
   if (!open) return null;
 
@@ -61,13 +69,8 @@ export default function SettingsModal({ open, onClose, onSaved, staticMode }: Pr
     setStatus('saving');
     setErrorMsg('');
 
-    // In static mode, just apply config locally — no server to save to
-    if (staticMode) {
-      setStatus('saved');
-      onSaved();
-      setTimeout(() => { onClose(); setStatus('idle'); }, 600);
-      return;
-    }
+    // Always persist to localStorage so settings survive page reloads
+    localStorage.setItem('debalect_config', JSON.stringify({ provider: config.provider, model: config.model }));
 
     try {
       const body: Record<string, string> = { provider: config.provider, model: config.model };
@@ -79,7 +82,7 @@ export default function SettingsModal({ open, onClose, onSaved, staticMode }: Pr
         body: JSON.stringify(body),
       });
 
-      if (!res.ok) throw new Error('Failed to save config');
+      if (!res.ok) throw new Error('Failed to save config on server');
 
       const updated = await res.json();
       setConfig(updated);
@@ -91,8 +94,16 @@ export default function SettingsModal({ open, onClose, onSaved, staticMode }: Pr
         setStatus('idle');
       }, 600);
     } catch (err) {
+      // If we're using webllm (browser-only), local persistence is sufficient
+      if (config.provider === 'webllm') {
+        setStatus('saved');
+        onSaved();
+        setTimeout(() => { onClose(); setStatus('idle'); }, 600);
+        return;
+      }
+      // For server-dependent providers, show the error
       setStatus('error');
-      setErrorMsg(err instanceof Error ? err.message : 'Failed to save');
+      setErrorMsg(err instanceof Error ? err.message : 'Could not reach the server to save settings. Make sure the backend is running.');
     }
   };
 
@@ -155,6 +166,18 @@ export default function SettingsModal({ open, onClose, onSaved, staticMode }: Pr
                 </button>
               ))}
             </div>
+
+            {/* Warning for server-dependent providers when server is unreachable */}
+            {staticMode && config.provider !== 'webllm' && (
+              <div className="mb-4 p-3 rounded-xl border border-amber-500/30 bg-amber-500/10 text-amber-400 text-xs">
+                <div className="flex items-start gap-2">
+                  <svg className="w-4 h-4 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                  </svg>
+                  <span><strong>Server not detected.</strong> Ollama and cloud APIs require the backend to be running locally (<code className="text-[11px] bg-amber-500/10 px-1 rounded">npm run dev</code> in the server folder). Settings will be saved locally but won't take effect until the server starts.</span>
+                </div>
+              </div>
+            )}
 
             {/* Model selector */}
             <div className="mb-4">
@@ -242,10 +265,10 @@ export default function SettingsModal({ open, onClose, onSaved, staticMode }: Pr
 
             <button
               onClick={handleSave}
-              disabled={status === 'saving' || (!staticMode && needsApiKey && !apiKey && !config.hasKey)}
+              disabled={status === 'saving' || (needsApiKey && !apiKey && !config.hasKey)}
               className={`
                 w-full py-3 rounded-xl font-medium text-sm transition-all duration-300
-                ${status === 'saving' || (!staticMode && needsApiKey && !apiKey && !config.hasKey)
+                ${status === 'saving' || (needsApiKey && !apiKey && !config.hasKey)
                   ? 'bg-white/5 text-zinc-600 cursor-not-allowed'
                   : status === 'saved'
                     ? 'bg-emerald-500/20 text-emerald-400'

@@ -61,7 +61,16 @@ export default function App() {
   const [currentFile, setCurrentFile] = useState<string>('');
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [loadProgress, setLoadProgress] = useState<string>('');
-  const [cachedConfig, setCachedConfig] = useState<CachedConfig>({ provider: 'webllm', model: 'Llama-3.2-3B-Instruct-q4f16_1-MLC' });
+  const [cachedConfig, setCachedConfig] = useState<CachedConfig>(() => {
+    const saved = localStorage.getItem('debalect_config');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed.provider && parsed.model) return { provider: parsed.provider, model: parsed.model };
+      } catch { /* ignore corrupt localStorage */ }
+    }
+    return { provider: 'webllm', model: 'Llama-3.2-3B-Instruct-q4f16_1-MLC' };
+  });
   const [compareIds, setCompareIds] = useState<Set<string>>(new Set());
   const [compareMode, setCompareMode] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -70,7 +79,18 @@ export default function App() {
   const resultsRef = useRef<HTMLDivElement>(null);
 
   const refreshConfig = useCallback(async () => {
-    try { const cfg = await fetch('/api/config').then((r) => r.json()); setCachedConfig({ provider: cfg.provider, model: cfg.model }); setStaticMode(false); } catch { /* keep defaults, stay in static mode */ }
+    try {
+      const res = await fetch('/api/config');
+      if (!res.ok) throw new Error('Server returned non-OK');
+      const cfg = await res.json();
+      const newConfig = { provider: cfg.provider, model: cfg.model };
+      setCachedConfig(newConfig);
+      localStorage.setItem('debalect_config', JSON.stringify(newConfig));
+      setStaticMode(false);
+    } catch {
+      // Server unreachable — keep local config, stay in static mode
+      setStaticMode(true);
+    }
   }, []);
 
   // Periodically retry server connection if in static mode (dev only)
@@ -117,14 +137,25 @@ export default function App() {
     setState('loading'); setError(null); setLoadProgress(''); setCompareMode(false); setCompareIds(new Set()); setEditingId(null);
     const fileName = file?.name || 'text-input';
     try {
-      if (cachedConfig.provider === 'webllm' && file) {
-        if (!isWebGPUSupported()) throw new Error('WebGPU is not available in your browser.');
-        if (!file.name.match(/\.(txt|md)$/i) && !file.type.match(/text\/(plain|markdown)/)) throw new Error('Browser inference only supports .txt and .md files.');
-        const text = await readFileAsText(file);
-        if (text.length < 50) throw new Error('Text is too short.');
+      if (cachedConfig.provider === 'webllm') {
+        // Browser inference path — runs entirely client-side
+        if (!isWebGPUSupported()) throw new Error('WebGPU is not available in your browser. Please use Chrome 113+, Edge 113+, or switch to a different AI provider in Settings.');
+
+        let text = _text;
+        if (file) {
+          if (!file.name.match(/\.(txt|md)$/i) && !file.type.match(/text\/(plain|markdown)/)) {
+            throw new Error('Browser inference only supports .txt and .md files. For PDFs or .docx, use the Ollama or cloud backend.');
+          }
+          text = await readFileAsText(file);
+        }
+        if (!text || text.length < 50) throw new Error('Text is too short. Please provide at least 50 characters for meaningful debate.');
+
         const truncated = text.length > 15000 ? text.slice(0, 15000) : text;
         setLoadProgress('Loading model...');
-        const debaterResponse = await queryBrowserAI(cachedConfig.model, DEBATER_PROMPT, truncated, (msg, pct) => { if (msg.includes('already loaded')) setLoadProgress('Generating counterarguments...'); else setLoadProgress(`${msg} (${pct}%)`); });
+        const debaterResponse = await queryBrowserAI(cachedConfig.model, DEBATER_PROMPT, truncated, (msg, pct) => {
+          if (msg.includes('already loaded')) setLoadProgress('Generating counterarguments...');
+          else setLoadProgress(`${msg} (${pct}%)`);
+        });
         setLoadProgress('Generating logical analysis...');
         const professorResponse = await queryBrowserAI(cachedConfig.model, PROFESSOR_PROMPT, truncated, () => {});
         const data: DebateResult = { originalLength: truncated.length, debater: debaterResponse, professor: professorResponse };
@@ -132,13 +163,25 @@ export default function App() {
         setHistory((prev) => [{ id: Date.now().toString(), timestamp: Date.now(), fileName, result: data, score: computeScore(data) }, ...prev].slice(0, 20));
         return;
       }
-      const formData = new FormData(); if (file) formData.append('file', file);
+
+      // Server inference path — Ollama, OpenAI, or Anthropic
+      const formData = new FormData();
+      if (file) formData.append('file', file);
+      else if (_text) formData.append('text', _text);
+      else throw new Error('Please provide text or a file to debate.');
+
       const res = await fetch('/api/debate', { method: 'POST', body: formData });
-      if (!res.ok) { const d = await res.json(); throw new Error(d.error || 'Failed'); }
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({ error: `Server returned ${res.status}` }));
+        throw new Error(d.error || 'Failed to reach the server');
+      }
       const data: DebateResult = await res.json();
       setResult(data); setCurrentFile(fileName); setState('results');
       setHistory((prev) => [{ id: Date.now().toString(), timestamp: Date.now(), fileName, result: data, score: computeScore(data) }, ...prev].slice(0, 20));
-    } catch (err) { setError(err instanceof Error ? err.message : 'An unexpected error occurred'); setState('error'); }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'An unexpected error occurred';
+      setError(msg); setState('error');
+    }
   };
 
   useEffect(() => { if (state === 'results') { requestAnimationFrame(() => requestAnimationFrame(() => { resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }); })); } }, [state]);
