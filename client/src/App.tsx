@@ -53,6 +53,7 @@ export default function App() {
   const [currentFile, setCurrentFile] = useState<string>('');
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [loadProgress, setLoadProgress] = useState<string>('');
+  const [loadStep, setLoadStep] = useState<number>(0); // 0=reading, 1=loading model, 2=debater, 3=professor
   const [cachedConfig, setCachedConfig] = useState<CachedConfig>(() => {
     const saved = localStorage.getItem('debalect_config');
     if (saved) {
@@ -126,7 +127,7 @@ export default function App() {
   const displayName = (entry: HistoryEntry) => entry.customName || entry.fileName;
 
   const handleSubmit = async (_text: string, file: File | null) => {
-    setState('loading'); setError(null); setLoadProgress(''); setCompareMode(false); setCompareIds(new Set()); setEditingId(null);
+    setState('loading'); setError(null); setLoadProgress(''); setLoadStep(0); setCompareMode(false); setCompareIds(new Set()); setEditingId(null);
     const fileName = file?.name || 'text-input';
     try {
       if (cachedConfig.provider === 'webllm') {
@@ -137,16 +138,17 @@ export default function App() {
         if (file) {
           text = await readFileContent(file);
         }
-        if (!text || text.length < 50) throw new Error('Text is too short. Please provide at least 50 characters for meaningful debate.');
+        if (!text || text.length < 50) throw new Error('This text is a bit short for a proper debate. Try at least 50 characters — a paragraph or two works best.');
 
         const truncated = text.length > 15000 ? text.slice(0, 15000) : text;
-        setLoadProgress('Loading model...');
+        setLoadStep(1); setLoadProgress('Waking up the AI...');
         const debaterResponse = await queryBrowserAI(cachedConfig.model, DEBATER_PROMPT, truncated, (msg, pct) => {
-          if (msg.includes('already loaded')) setLoadProgress('Generating counterarguments...');
-          else setLoadProgress(`${msg} (${pct}%)`);
+          if (msg.includes('already loaded')) { setLoadStep(2); setLoadProgress(''); }
+          else { setLoadStep(1); setLoadProgress(`${msg} (${pct}%)`); }
         });
-        setLoadProgress('Generating logical analysis...');
+        setLoadStep(3); setLoadProgress('');
         const professorResponse = await queryBrowserAI(cachedConfig.model, PROFESSOR_PROMPT, truncated, () => {});
+        setLoadStep(4);
         const data: DebateResult = { originalLength: truncated.length, debater: debaterResponse, professor: professorResponse };
         setResult(data); setCurrentFile(fileName); setState('results');
         setHistory((prev) => [{ id: Date.now().toString(), timestamp: Date.now(), fileName, result: data, score: computeScore(data) }, ...prev].slice(0, 20));
@@ -194,13 +196,13 @@ export default function App() {
         <main className="flex-1 flex flex-col items-center px-4 sm:px-6 lg:px-8 pb-24">
           <div className="w-full max-w-3xl mt-12 sm:mt-20">
             {state === 'idle' && (
-              <div className="text-center mb-10 animate-fade-in">
-                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border text-sm font-medium mb-6" style={{ backgroundColor: 'var(--accent-soft)', borderColor: 'color-mix(in srgb, rgb(var(--accent)) 20%, transparent)', color: 'rgb(var(--accent))' }}>
+              <div className="text-center mb-12 animate-fade-in">
+                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border text-sm font-medium mb-8" style={{ backgroundColor: 'var(--accent-soft)', borderColor: 'color-mix(in srgb, rgb(var(--accent)) 20%, transparent)', color: 'rgb(var(--accent))' }}>
                   <span className="relative flex h-2 w-2"><span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{ backgroundColor: 'rgb(var(--accent))' }}></span><span className="relative inline-flex rounded-full h-2 w-2" style={{ backgroundColor: 'rgb(var(--accent))' }}></span></span>
                   No install. No key. No account.
                 </div>
-                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-serif italic font-semibold tracking-tight mb-4" style={{ color: 'rgb(var(--text))' }}>Sharpen Your Mind</h1>
-                <p className="text-lg max-w-xl mx-auto leading-relaxed" style={{ color: 'rgb(var(--text-secondary))' }}>Drop your essay. Face a world-class Oxford Union debate opponent and receive rigorous logical analysis from a university professor — all running in your browser.</p>
+                <h1 className="text-5xl sm:text-6xl lg:text-7xl font-serif italic font-semibold tracking-tight mb-5 leading-tight" style={{ color: 'rgb(var(--text))' }}>Sharpen<br />Your Mind</h1>
+                <p className="text-lg sm:text-xl max-w-xl mx-auto leading-relaxed" style={{ color: 'rgb(var(--text-secondary))' }}>Drop your essay. Face a world-class Oxford Union debate opponent and receive rigorous logical analysis from a university professor — all running in your browser.</p>
               </div>
             )}
 
@@ -313,24 +315,75 @@ export default function App() {
             )}
 
             {state === 'loading' && (
-              <div className="flex flex-col items-center justify-center py-20 animate-fade-in">
-                <div className="relative mb-8"><div className="w-20 h-20 rounded-2xl border flex items-center justify-center animate-pulse-glow" style={{ backgroundColor: 'rgb(var(--bg-overlay))', borderColor: 'rgb(var(--border))' }}><svg className="w-8 h-8 animate-spin" style={{ color: 'rgb(var(--accent))' }} fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg></div></div>
-                <h2 className="text-xl font-medium mb-2" style={{ color: 'rgb(var(--text))' }}>Analyzing your argument</h2>
-                <p className="text-sm max-w-md text-center" style={{ color: 'rgb(var(--text-muted))' }}>{loadProgress || 'The Oxford Union debater is crafting counterarguments while the logic professor examines your reasoning structure.'}</p>
-                <div className="mt-8 flex gap-3"><span className="h-1.5 w-1.5 rounded-full animate-bounce" style={{ backgroundColor: 'rgb(var(--oxford))', animationDelay: '0ms' }}></span><span className="h-1.5 w-1.5 rounded-full animate-bounce" style={{ backgroundColor: 'rgb(var(--oxford))', animationDelay: '150ms' }}></span><span className="h-1.5 w-1.5 rounded-full animate-bounce" style={{ backgroundColor: 'rgb(var(--professor))', animationDelay: '300ms' }}></span></div>
+              <div className="flex flex-col items-center justify-center py-16 animate-fade-in">
+                {/* Step progress indicator */}
+                <div className="flex items-center gap-3 mb-10">
+                  {['Reading', 'Model', 'Debater', 'Professor'].map((label, i) => (
+                    <div key={label} className="flex items-center gap-3">
+                      <div className={`flex flex-col items-center gap-1.5`}>
+                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-500 ${
+                          loadStep > i ? 'bg-emerald-500/20 text-emerald-400' :
+                          loadStep === i ? 'bg-accent/20 text-accent animate-pulse-glow' :
+                          'bg-white/5 text-zinc-600'
+                        }`}>
+                          {loadStep > i ? (
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
+                          ) : (
+                            <span className="text-[10px] font-bold font-mono">{i + 1}</span>
+                          )}
+                        </div>
+                        <span className={`text-[10px] font-medium transition-colors duration-500 ${loadStep >= i ? '' : ''}`} style={{ color: loadStep >= i ? 'rgb(var(--text-secondary))' : 'rgb(var(--text-muted))' }}>{label}</span>
+                      </div>
+                      {i < 3 && <div className={`w-6 h-px transition-colors duration-500 ${loadStep > i ? 'bg-emerald-500/40' : 'bg-white/10'}`} />}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Central loading animation */}
+                <div className="relative mb-8">
+                  <div className="w-24 h-24 rounded-3xl flex items-center justify-center animate-pulse-glow" style={{ backgroundColor: 'rgb(var(--bg-overlay))', borderColor: 'rgb(var(--border))', border: '1px solid rgb(var(--border))' }}>
+                    {loadStep < 2 ? (
+                      <svg className="w-10 h-10 animate-spin" style={{ color: 'rgb(var(--accent))' }} fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2.5" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
+                    ) : (
+                      <div className="flex items-center gap-1">
+                        <span className="w-2 h-2 rounded-full animate-typing" style={{ backgroundColor: 'rgb(var(--oxford))', animationDelay: '0ms' }} />
+                        <span className="w-2 h-2 rounded-full animate-typing" style={{ backgroundColor: 'rgb(var(--oxford))', animationDelay: '200ms' }} />
+                        <span className="w-2 h-2 rounded-full animate-typing" style={{ backgroundColor: 'rgb(var(--professor))', animationDelay: '400ms' }} />
+                      </div>
+                    )}
+                  </div>
+                  {/* Pulsing ring */}
+                  <div className="absolute inset-0 rounded-3xl animate-ping-slow opacity-20" style={{ border: '2px solid rgb(var(--accent))' }} />
+                </div>
+
+                {/* Status text */}
+                <h2 className="text-xl font-serif italic font-semibold mb-1.5" style={{ color: 'rgb(var(--text))' }}>
+                  {loadStep === 0 && 'Reading your text…'}
+                  {loadStep === 1 && (loadProgress || 'Loading the AI model…')}
+                  {loadStep === 2 && 'Oxford Union debater is thinking…'}
+                  {loadStep === 3 && 'Logic professor is analyzing…'}
+                  {loadStep === 4 && 'Compiling your analysis…'}
+                </h2>
+                <p className="text-sm max-w-md text-center leading-relaxed" style={{ color: 'rgb(var(--text-muted))' }}>
+                  {loadStep === 0 && 'Extracting the text from your file to prepare it for analysis.'}
+                  {loadStep === 1 && 'First-time downloads can take a minute. The model stays cached for next time.'}
+                  {loadStep === 2 && 'Crafting structured counterarguments with claims, evidence, and impact.'}
+                  {loadStep === 3 && 'Reconstructing your argument, checking for fallacies, and evaluating strength.'}
+                  {loadStep === 4 && 'Almost done — putting everything together.'}
+                </p>
               </div>
             )}
 
             {state === 'results' && result && (
               <div ref={resultsRef}>
-                <div className="flex items-center justify-between mb-6 animate-fade-in">
+                <div className="flex items-center justify-between mb-8 animate-fade-in">
                   <div>
-                    <div className="flex items-center gap-3"><h2 className="text-lg font-medium" style={{ color: 'rgb(var(--text-secondary))' }}>Analysis complete</h2>{currentScore && <ScoreBadge score={currentScore} />}</div>
-                    {currentFile && <p className="text-xs mt-0.5" style={{ color: 'rgb(var(--text-muted))' }}>{currentFile} &middot; {currentScore?.counterCount || 0} counterarguments</p>}
+                    <div className="flex items-center gap-3"><h2 className="text-xl font-serif italic font-semibold" style={{ color: 'rgb(var(--text))' }}>Analysis Complete</h2>{currentScore && <ScoreBadge score={currentScore} />}</div>
+                    {currentFile && <p className="text-sm mt-1" style={{ color: 'rgb(var(--text-muted))' }}>{currentFile} &middot; {currentScore?.counterCount || 0} counterarguments &middot; {result.originalLength.toLocaleString()} chars</p>}
                   </div>
                   <div className="flex items-center gap-2">
-                    <button onClick={() => result && exportMarkdown(result, currentFile || 'debate')} className="text-sm hover:opacity-80 transition-colors flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-surface-border" style={{ color: 'rgb(var(--text-secondary))' }}><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>Export</button>
-                    <button onClick={handleReset} className="text-sm hover:opacity-80 transition-colors flex items-center gap-1.5" style={{ color: 'rgb(var(--text-muted))' }}><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" /></svg>New debate</button>
+                    <button onClick={() => result && exportMarkdown(result, currentFile || 'debate')} className="text-sm font-medium hover:bg-white/5 transition-colors flex items-center gap-1.5 px-3.5 py-2 rounded-lg border border-surface-border" style={{ color: 'rgb(var(--text-secondary))' }}><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>Export</button>
+                    <button onClick={handleReset} className="text-sm font-medium hover:bg-white/5 transition-colors flex items-center gap-1.5 px-3.5 py-2 rounded-lg border border-surface-border" style={{ color: 'rgb(var(--text-muted))' }}><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" /></svg>New</button>
                   </div>
                 </div>
                 <DebateView debater={result.debater} professor={result.professor} />

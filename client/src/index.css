@@ -143,6 +143,17 @@ button:focus-visible {
   50% { box-shadow: 0 0 40px var(--accent-soft); }
 }
 
+@keyframes ping-slow {
+  0% { transform: scale(1); opacity: 0.4; }
+  50% { transform: scale(1.15); opacity: 0.1; }
+  100% { transform: scale(1); opacity: 0.4; }
+}
+
+@keyframes typing {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+  30% { transform: translateY(-8px); opacity: 1; }
+}
+
 .animate-fade-in {
   animation: fadeIn 0.5s ease-out forwards;
 }
@@ -153,6 +164,14 @@ button:focus-visible {
 
 .animate-pulse-glow {
   animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.animate-ping-slow {
+  animation: ping-slow 3s ease-in-out infinite;
+}
+
+.animate-typing {
+  animation: typing 1.4s ease-in-out infinite;
 }
 
 /* Typography */

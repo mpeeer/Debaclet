@@ -7,6 +7,27 @@ interface Props {
   error: string | null;
 }
 
+/** Return the most relevant contextual tip for a given error message */
+function getErrorTip(error: string): string | null {
+  const msg = error.toLowerCase();
+  if (msg.includes('webgpu')) {
+    return '💡 Try using Chrome 113+ or Edge 113+, or switch to a different AI provider in Settings.';
+  }
+  if (msg.includes('too short') || msg.includes('50 characters')) {
+    return '💡 A good debate needs substance — try uploading a longer document with at least a full paragraph.';
+  }
+  if (msg.startsWith('docx') || msg.includes('docx files require')) {
+    return '💡 Save your document as .txt, .md, or .pdf to use browser mode.';
+  }
+  if (msg.includes('failed to fetch') || msg.includes('networkerror')) {
+    return '💡 Check your internet connection — the AI model needs to download on first use. VPNs or firewalls may block it.';
+  }
+  if (msg.includes('corrupted') || (msg.includes('pdf') && !msg.includes('docx'))) {
+    return '💡 This PDF might be scanned or image-based. Try a text-based PDF, or upload a .txt file instead.';
+  }
+  return '💡 Try again with a different file, or check your internet connection if the AI model hasn\'t downloaded yet.';
+}
+
 export default function InputPanel({ onSubmit, isLoading, error }: Props) {
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
@@ -83,6 +104,8 @@ export default function InputPanel({ onSubmit, isLoading, error }: Props) {
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
+  const errorTip = error ? getErrorTip(error) : null;
+
   return (
     <div className="space-y-4 animate-fade-in">
       {/* File upload zone */}
@@ -91,12 +114,12 @@ export default function InputPanel({ onSubmit, isLoading, error }: Props) {
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         className={`
-          relative rounded-2xl border-2 border-dashed transition-all duration-300 p-10 text-center cursor-pointer
+          relative rounded-2xl border-2 border-dashed transition-all duration-500 p-10 text-center cursor-pointer
           ${isDragging
-            ? 'border-accent bg-accent/5 shadow-glow'
+            ? 'border-accent bg-accent/[0.08] shadow-glow scale-[1.01]'
             : file
-              ? 'border-debate-oxford/40 bg-debate-oxford/5'
-              : 'border-surface-border hover:border-zinc-600 bg-transparent'
+              ? 'border-emerald-500/30 bg-emerald-500/[0.04]'
+              : 'border-surface-border hover:border-zinc-500/50 bg-transparent hover:bg-white/[0.02]'
           }
         `}
         onClick={() => fileInputRef.current?.click()}
@@ -170,14 +193,22 @@ export default function InputPanel({ onSubmit, isLoading, error }: Props) {
 
       {/* Error message */}
       {error && (
-        <div className="glass rounded-xl p-4 border-red-500/20 bg-red-500/5 animate-slide-in">
-          <div className="flex items-start gap-3">
-            <svg className="w-5 h-5 text-red-400 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
-            </svg>
-            <div>
-              <p className="text-sm font-medium text-red-400">Could not process your request</p>
-              <p className="text-xs text-red-400/70 mt-1">{error}</p>
+        <div className="relative glass rounded-2xl p-5 border-red-500/20 bg-red-500/[0.03] animate-fade-in overflow-hidden">
+          <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-red-500/40 to-transparent" />
+          <div className="flex items-start gap-4">
+            <div className="w-10 h-10 rounded-xl bg-red-500/10 flex items-center justify-center shrink-0">
+              <svg className="w-5 h-5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+              </svg>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-red-300 mb-1">Something went wrong</p>
+              <p className="text-sm text-red-400/80 leading-relaxed">{error}</p>
+              {errorTip && (
+                <div className="mt-3 pt-3 border-t border-red-500/10">
+                  <p className="text-xs text-red-400/60">{errorTip}</p>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -190,8 +221,8 @@ export default function InputPanel({ onSubmit, isLoading, error }: Props) {
         className={`
           w-full py-3.5 px-6 rounded-xl font-medium text-sm transition-all duration-300
           ${canSubmit
-            ? 'bg-white text-black hover:bg-zinc-200 active:scale-[0.98]'
-            : 'bg-white/5 text-zinc-600 cursor-not-allowed'
+            ? 'bg-white text-black hover:bg-zinc-100 hover:shadow-lg hover:shadow-white/5 active:scale-[0.98]'
+            : 'bg-white/[0.04] text-zinc-600 cursor-not-allowed'
           }
         `}
       >
