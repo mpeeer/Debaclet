@@ -1,182 +1,258 @@
-# Debalect
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset=".github/assets/logo-dark.svg">
+    <img alt="Debalect" src=".github/assets/logo-light.svg" width="240">
+  </picture>
+</p>
 
-**Cognitive training platform.** Drop your essay. Face a world-class Oxford Union debate opponent and receive rigorous logical analysis from a university professor.
+<p align="center">
+  <strong>Upload an essay. Get a structured debate analysis — counterarguments, logical deconstruction, and an epistemic verdict.</strong>
+</p>
 
-> No install. No account. No API key. Just your browser — or run locally with Ollama, OpenAI, or Anthropic.
+<p align="center">
+  <a href="https://github.com/mpeeer/Debaclet/actions"><img src="https://img.shields.io/github/actions/workflow/status/mpeeer/Debaclet/.github%2Fworkflows%2Fdeploy.yml?branch=main&label=deploy" alt="Deploy status"></a>
+  <a href="./LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="License: MIT"></a>
+  <a href="https://nodejs.org"><img src="https://img.shields.io/badge/node-%E2%89%A518-339933" alt="Node ≥ 18"></a>
+</p>
 
-[![Deploy to GitHub Pages](https://github.com/actions/workflows/pages/pages-build-deployment/badge.svg)](https://github.com/features/actions)
+<br>
+
+<!--
+  ## Screenshots
+
+  To complete this README, add the following images to .github/assets/:
+
+  | File | Dimensions | Description |
+  |---|---|---|
+  | `screenshot-main.png` | 1400×900 | Full interface — file upload, dual-panel results, and score history |
+  | `screenshot-cards.png` | 700×500 | Expanded counterargument cards with claim, evidence, and impact |
+  | `screenshot-professor.png` | 700×500 | Professor analysis panel with confidence meter and fallacy detection |
+
+  Once added, uncomment the image sections below.
+-->
+
+<!--
+<p align="center">
+  <img src=".github/assets/screenshot-main.png" alt="Debalect interface showing file upload, dual-panel debate output, and score history" width="100%" style="max-width: 900px;">
+</p>
+
+<br>
+-->
 
 ---
 
-## How It Works
+## Overview
 
-```
-┌─────────────────────────────────────────────────────┐
-│                    Debalect                         │
-│                                                     │
-│  Your Essay In  ──►  Two AI Personas Run in Parallel│
-│                                                     │
-│  ┌─────────────────────┐  ┌───────────────────────┐ │
-│  │  Oxford Union       │  │  Logic Professor      │ │
-│  │  Debater            │  │                       │ │
-│  │  • Counterarguments │  │  • Thesis extraction  │ │
-│  │  • Evidence/impact  │  │  • Fallacy detection  │ │
-│  │  • Real-world cases │  │  • Epistemic verdict  │ │
-│  │  • Rhetorical force │  │  • Confidence meter   │ │
-│  └─────────────────────┘  └───────────────────────┘ │
-│                                                     │
-│  Output: Structured cards, quality scores, export   │
-└─────────────────────────────────────────────────────┘
-```
+Debalect runs two parallel analysis paths against a submitted text:
 
-## AI Providers
+1. **Debater** — Identifies the core thesis and produces structured counterarguments with claims, evidence, and impact assessment. Returns a closing statement.
+2. **Professor** — Reconstructs the argument into formal premises and conclusion, surfaces implicit assumptions, evaluates strengths and weaknesses, flags logical fallacies, and assigns an epistemic confidence rating.
 
-Debalect supports four AI backends. Pick what works for you.
+Results are parsed into structured UI cards. Every analysis receives a composite quality score (0–100) based on counterargument count, confidence level, and fallacy presence. Sessions are saved to local storage.
 
-| Provider | Setup | Key | Cost | Privacy | Speed |
-|----------|-------|-----|------|---------|-------|
-| **Browser** (WebLLM) | None | None | Free | Full (on-device) | Model-dependent |
-| **Ollama** | Install once | None | Free | Full | Fast |
-| **OpenAI** | None | API key | Pay-per-use | Cloud | Fast |
-| **Anthropic** | None | API key | Pay-per-use | Cloud | Fast |
+The application ships as a fully static web frontend with an optional Express backend for API-key-based providers.
 
-**The Browser provider is the headline.** Models run directly in your browser via WebGPU. The first debate downloads the model (~2 GB, cached in IndexedDB). After that, all inference happens on your device with zero latency to any server. Requires Chrome 113+ or Edge 113+.
+<br>
 
-The API key providers (OpenAI, Anthropic) are useful when you want stronger models or don't have a WebGPU-capable browser. Debalect's value isn't the model — it's the **cognitive training format**: dual-persona debate, structured parsing, evidence/impact breakdowns, fallacy detection, and epistemic verdicts with confidence meters.
+<!--
+<table>
+  <tr>
+    <td width="50%"><img src=".github/assets/screenshot-cards.png" alt="Structured counterargument cards with claim, evidence, and impact sections" width="100%"></td>
+    <td width="50%"><img src=".github/assets/screenshot-professor.png" alt="Professor panel showing argument reconstruction, confidence meter, and fallacy detection" width="100%"></td>
+  </tr>
+</table>
+-->
+
+---
 
 ## Features
 
-- **File upload** — Drag and drop `.txt` or `.md` files, with live preview
-- **Dual-panel view** — Side-by-side debater and professor panels, or tabbed switching
-- **Counterargument cards** — Parsed with evidence, impact, and real-world examples
-- **Fallacy detection** — Ad hominem, straw man, false dilemma, and more
-- **Confidence meter** — Visual gauge showing the professor's epistemic certainty
-- **Quality scoring** — Every debate gets a 0–100 score from counter count, confidence, and fallacy presence
-- **Score trend chart** — Bar chart showing progression over your last 10 debates
-- **Debate comparison** — Select two past debates and view them side-by-side
-- **Session history** — Last 20 debates with rename, revisit, and clear
-- **Export as Markdown** — Download any debate as a `.md` file
-- **Theme system** — Dark, Light, Oxford Blue, Professor Purple, and System (auto)
-- **No BS** — No ads, no tracking, no accounts, no AI fluff
+| Category | Capabilities |
+|---|---|
+| **Input** | Drag-and-drop file upload (.txt, .md, .pdf, .docx), live text preview, 10 MB limit |
+| **Analysis** | Dual-path parallel inference, thesis extraction, structured counterargument parsing |
+| **Structured output** | Claim / Evidence / Impact breakdown, argument reconstruction with premises & assumptions, fallacy detection, confidence meter |
+| **Quality scoring** | Composite 0–100 score per analysis, color-coded badges, score trend chart (last 10) |
+| **History** | Last 20 analyses persisted in local storage, rename, revisit, clear |
+| **Comparison** | Select two past analyses and view scores side-by-side |
+| **Export** | Download any analysis as a Markdown file |
+| **Themes** | Dark, Light, Oxford Blue, Professor Purple, System (auto-detect) |
 
-## Deploy to GitHub Pages
+---
 
-Debalect works as a **fully static site**. Push to `main` and GitHub Actions deploys automatically.
+## AI Providers
 
-1. Fork or push this repo to GitHub
-2. Go to **Settings → Pages → Build and deployment → Source: GitHub Actions**
-3. Push to `main` — the workflow in `.github/workflows/deploy.yml` builds and deploys
+Four inference backends are supported. The browser provider requires no setup — models download once, then all inference runs on-device.
 
-The deployed site uses only the Browser provider (WebLLM). No backend required.
+| Provider | Setup | Authentication | Cost | Data location |
+|---|---|---|---|---|
+| **Browser** (WebLLM) | None | None | Free | On-device |
+| **Ollama** | [Install Ollama](https://ollama.com/download) | None | Free | Local host |
+| **OpenAI** | None | API key | Pay-per-use | Cloud |
+| **Anthropic** | None | API key | Pay-per-use | Cloud |
 
-**Manual build:**
-```bash
-cd client
-npm install
-npx vite build --base=/your-repo-name/
-# Output in client/dist/ — deploy to any static host
-```
+> **Browser requirements:** Chrome 113+ or Edge 113+ with WebGPU support. The first analysis downloads ~2 GB of model weights, cached in IndexedDB for subsequent sessions.
 
-## Local Development
+---
+
+## Quick Start
 
 ### Prerequisites
 
 - **Node.js** ≥ 18
+- (Optional) Ollama, or an OpenAI / Anthropic API key
 
-### Quick Start (Browser-only)
-
-Run the frontend alone — no backend needed if you're using the Browser provider:
+### Browser-only (no backend)
 
 ```bash
 cd client
 npm install
 npm run dev
-# Opens http://localhost:5173
+# → http://localhost:5173
 ```
 
-The app auto-detects there's no server and locks to Browser mode.
+When no backend is detected, the application automatically locks to Browser mode.
 
-### Quick Start (with Backend)
-
-For Ollama, OpenAI, or Anthropic providers:
+### With backend (Ollama, OpenAI, Anthropic)
 
 ```bash
-# 1. Install all dependencies
 npm run install:all
-
-# 2. Start both frontend and backend
 npm run dev
 
-# Frontend: http://localhost:5173
-# Backend:  http://localhost:3001
+# Client: http://localhost:5173
+# Server: http://localhost:3001
 ```
 
-### Ollama Setup
+### Ollama
 
 ```bash
-# Install Ollama: https://ollama.com/download
-ollama pull llama3.1     # Recommended (~8B params)
-# or
-ollama pull llama3.2      # Lightweight (~3B params)
-
-# Set model via env var (optional)
+ollama pull llama3.1
+# Optional: set a custom model
 export OLLAMA_MODEL=llama3.1
 ```
 
-### OpenAI / Anthropic Setup
+### OpenAI / Anthropic
 
-No install needed. Open Settings (gear icon) in the app, select your provider, and paste your API key. The key stays in server memory only — never written to disk.
+Open **Settings** (gear icon) in the application, select your provider, and enter your API key. Keys are held in server memory only and are never written to disk.
 
-Start the server with your key (optional, alternative to UI):
+Alternatively, start the server with environment variables:
+
 ```bash
 PROVIDER=openai MODEL=gpt-4o-mini OPENAI_API_KEY=sk-... npm run dev:server
 ```
 
-## Project Structure
+---
 
+## Deployment
+
+### GitHub Pages
+
+The repository includes a GitHub Actions workflow (`.github/workflows/deploy.yml`) that builds and deploys on every push to `main`.
+
+1. Push to GitHub
+2. Enable GitHub Actions in **Settings → Pages → Build and deployment → Source: GitHub Actions**
+3. Push to `main` — deployment runs automatically
+
+The deployed site uses Browser-only inference. No server is required.
+
+### Static hosting (manual)
+
+```bash
+cd client
+npm install
+npx vite build --base=/your-base-path/
+# Deploy client/dist/ to any static host (Vercel, Netlify, S3 + CloudFront, etc.)
 ```
-debalect/
-├── client/                          # React + Vite + TailwindCSS
-│   ├── public/
-│   │   └── 404.html                 # SPA routing for GitHub Pages
-│   ├── src/
-│   │   ├── components/
-│   │   │   ├── Header.tsx           # Sticky header + provider badge
-│   │   │   ├── InputPanel.tsx       # File upload with preview
-│   │   │   ├── DebateView.tsx       # Dual-panel / tabbed view
-│   │   │   ├── CounterArgument.tsx  # Parsed counterargument cards
-│   │   │   ├── ProfessorNote.tsx    # Logical analysis + confidence meter
-│   │   │   ├── SettingsModal.tsx    # Provider, model, API key config
-│   │   │   └── ThemeSwitcher.tsx    # 5-theme picker
-│   │   ├── context/
-│   │   │   └── ThemeContext.tsx      # Theme state management
-│   │   ├── services/
-│   │   │   ├── webllm.ts            # WebLLM engine (browser inference)
-│   │   │   └── prompts.ts           # Debater/professor system prompts
-│   │   ├── App.tsx                  # Main state machine + history + scoring
-│   │   ├── types.ts                 # Shared TypeScript types
-│   │   └── index.css                # Design tokens + global styles
-│   └── ...
-├── server/                          # Express + TypeScript
-│   ├── src/
-│   │   ├── routes/
-│   │   │   └── debate.ts            # POST /api/debate + /api/config
-│   │   ├── services/
-│   │   │   ├── providers.ts         # Ollama / OpenAI / Anthropic abstraction
-│   │   │   └── prompts.ts           # Server-side system prompts
-│   │   └── index.ts                 # Express entry
-│   └── ...
-├── .github/workflows/
-│   └── deploy.yml                   # Auto-deploy to GitHub Pages
-└── package.json                     # Root scripts
-```
-
-## License
-
-MIT — Open source. Use it, fork it, improve it.
 
 ---
 
-<p align="center">
-  <sub>Built for sharper thinking. No cloud required.</sub>
-</p>
+## Project Structure
+
+```
+.
+├── .github/workflows/
+│   └── deploy.yml                       # GitHub Pages CI/CD
+├── client/                              # React 18 + Vite + Tailwind CSS
+│   ├── src/
+│   │   ├── components/
+│   │   │   ├── Header.tsx               # Sticky header, provider badge
+│   │   │   ├── InputPanel.tsx           # Drag-and-drop file upload with preview
+│   │   │   ├── DebateView.tsx           # Tabbed / split-panel result view
+│   │   │   ├── CounterArgument.tsx      # Parsed counterargument card component
+│   │   │   ├── ProfessorNote.tsx        # Argument reconstruction, fallacies, verdict
+│   │   │   ├── SettingsModal.tsx        # Provider, model, API key management
+│   │   │   ├── ThemeSwitcher.tsx        # Five-theme picker
+│   │   │   └── ErrorBoundary.tsx        # React error boundary
+│   │   ├── context/
+│   │   │   └── ThemeContext.tsx          # Theme state + persistence
+│   │   ├── services/
+│   │   │   ├── webllm.ts                # WebLLM inference engine (WebGPU)
+│   │   │   └── prompts.ts               # System prompts for debater and professor
+│   │   ├── App.tsx                       # Application state machine, history, scoring
+│   │   ├── types.ts                      # TypeScript type definitions
+│   │   └── index.css                     # Design tokens and global styles
+│   └── ...
+├── server/                              # Express + TypeScript
+│   ├── src/
+│   │   ├── routes/
+│   │   │   └── debate.ts                # POST /api/debate, POST /api/config
+│   │   ├── services/
+│   │   │   ├── providers.ts             # Ollama / OpenAI / Anthropic adapter
+│   │   │   └── prompts.ts               # Server-side system prompts
+│   │   └── index.ts                      # Express entry point (port 3001)
+│   └── ...
+└── package.json                          # Root workspace scripts
+```
+
+---
+
+## Configuration
+
+### Server environment variables
+
+| Variable | Default | Description |
+|---|---|---|
+| `PORT` | `3001` | Server listen port |
+| `PROVIDER` | `ollama` | `ollama`, `openai`, or `anthropic` |
+| `MODEL` | `llama3.1` | Model identifier |
+| `OLLAMA_HOST` | `http://localhost:11434` | Ollama API endpoint |
+| `OPENAI_API_KEY` | — | OpenAI API key |
+| `ANTHROPIC_API_KEY` | — | Anthropic API key |
+
+### Browser model selection
+
+When using the Browser provider, available models are determined by `@mlc-ai/web-llm`:
+
+- `Llama-3.2-3B-Instruct-q4f16_1-MLC` (default)
+- `Llama-3.2-1B-Instruct-q4f16_1-MLC`
+- `Gemma-2-2B-it-q4f16_1-MLC`
+
+---
+
+## Local Development
+
+```bash
+# Install dependencies for both client and server
+npm run install:all
+
+# Start both in development mode
+npm run dev
+
+# Type-check the full project
+npm run typecheck
+
+# Build the client for production
+npm run build
+```
+
+---
+
+## Contributing
+
+Bug reports and pull requests are welcome. For major changes, open an issue first to discuss the proposed approach. Ensure `npm run typecheck` passes before submitting a PR.
+
+---
+
+## License
+
+MIT. See [LICENSE](./LICENSE) for details.
