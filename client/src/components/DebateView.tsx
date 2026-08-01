@@ -2,92 +2,49 @@ import { useState } from 'react';
 import CounterArgument from './CounterArgument';
 import ProfessorNote from './ProfessorNote';
 
-type ViewMode = 'debater' | 'professor' | 'split';
+type ViewMode = 'debater' | 'both' | 'professor';
 
 interface Props {
   debater: string;
   professor: string;
 }
 
+const MODES: { id: ViewMode; label: string }[] = [
+  { id: 'debater', label: 'Counterargument' },
+  { id: 'both', label: 'Both' },
+  { id: 'professor', label: 'Logic review' },
+];
+
 export default function DebateView({ debater, professor }: Props) {
-  const [mode, setMode] = useState<ViewMode>('debater');
+  const [mode, setMode] = useState<ViewMode>('both');
 
   return (
-    <div className="animate-fade-in space-y-5">
-      {/* Result view switcher */}
-      <div className="flex items-center justify-between gap-4 mb-1">
-        <div>
-          <p className="eyebrow mb-2">Analysis workspace</p>
-          <p className="text-sm" style={{ color: 'rgb(var(--text-muted))' }}>Move between the debate response and the logic review.</p>
-        </div>
-      </div>
-      <div className="flex rounded-2xl bg-surface-overlay border border-surface-border p-1.5 gap-1" role="tablist" aria-label="Analysis views">
-        <button
-          onClick={() => setMode('debater')}
-          role="tab"
-          aria-selected={mode === 'debater'}
-          className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-sm font-medium transition-all duration-200 ${
-            mode === 'debater' ? 'bg-debate-oxford/15 text-debate-oxford shadow-sm' : 'opacity-60 hover:opacity-100'
-          }`}
-          style={mode !== 'debater' ? { color: 'rgb(var(--text-muted))' } : undefined}
-        >
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z" />
-          </svg>
-          <span className="hidden sm:inline">Debater</span>
-        </button>
-        <button
-          onClick={() => setMode('split')}
-          role="tab"
-          aria-selected={mode === 'split'}
-          className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-sm font-medium transition-all duration-200 ${
-            mode === 'split' ? 'bg-accent/10 text-accent shadow-sm' : 'opacity-60 hover:opacity-100'
-          }`}
-          style={mode !== 'split' ? { color: 'rgb(var(--text-muted))' } : undefined}
-        >
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9 4.5v15m6-15v15m-10.875 0h15.75c.621 0 1.125-.504 1.125-1.125V5.625c0-.621-.504-1.125-1.125-1.125H4.125C3.504 4.5 3 5.004 3 5.625v12.75c0 .621.504 1.125 1.125 1.125z" />
-          </svg>
-          <span className="hidden sm:inline">Split</span>
-        </button>
-        <button
-          onClick={() => setMode('professor')}
-          role="tab"
-          aria-selected={mode === 'professor'}
-          className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-sm font-medium transition-all duration-200 ${
-            mode === 'professor' ? 'bg-debate-professor/15 text-debate-professor shadow-sm' : 'opacity-60 hover:opacity-100'
-          }`}
-          style={mode !== 'professor' ? { color: 'rgb(var(--text-muted))' } : undefined}
-        >
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M4.26 10.147a60.438 60.438 0 0 0-.491 6.347A48.627 48.627 0 0 1 12 20.904a48.627 48.627 0 0 1 8.232-4.41 60.46 60.46 0 0 0-.491-6.347m-15.482 0a50.57 50.57 0 0 0-2.658-.813A59.905 59.905 0 0 1 12 3.493a59.902 59.902 0 0 1 10.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.697 50.697 0 0 1 12 13.489a50.702 50.702 0 0 1 7.74-3.342M6.75 15a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm0 0v-3.675A55.378 55.378 0 0 1 12 8.443m-7.007 11.55A5.981 5.981 0 0 0 6.75 15.75v-1.5" />
-          </svg>
-          <span className="hidden sm:inline">Professor</span>
-        </button>
+    <div className="space-y-6">
+      <div className="flex items-center gap-3 text-[13px]">
+        {MODES.map((m, i) => (
+          <span key={m.id} className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => setMode(m.id)}
+              aria-current={mode === m.id ? 'true' : undefined}
+              className="hover:opacity-100 transition-opacity"
+              style={{ color: mode === m.id ? 'rgb(var(--text))' : 'rgb(var(--text-muted))' }}
+            >
+              {mode === m.id ? '▸' : ' '} {m.label}
+            </button>
+            {i < MODES.length - 1 && <span style={{ color: 'rgb(var(--text-muted))' }}>·</span>}
+          </span>
+        ))}
       </div>
 
-      {/* Content */}
-      {mode === 'split' ? (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <div className="min-w-0">
-            <div className="flex items-center gap-2 mb-3 px-1">
-              <div className="w-2 h-2 rounded-full bg-debate-oxford" />
-              <span className="text-xs font-semibold uppercase tracking-wider text-debate-oxford">Oxford Union Debater</span>
-            </div>
-            <CounterArgument rawText={debater} />
-          </div>
-          <div className="min-w-0">
-            <div className="flex items-center gap-2 mb-3 px-1">
-              <div className="w-2 h-2 rounded-full bg-debate-professor" />
-              <span className="text-xs font-semibold uppercase tracking-wider text-debate-professor">Logic Professor</span>
-            </div>
-            <ProfessorNote rawText={professor} />
-          </div>
+      {mode === 'debater' && <CounterArgument rawText={debater} />}
+      {mode === 'professor' && <ProfessorNote rawText={professor} />}
+      {mode === 'both' && (
+        <div className="space-y-10">
+          <CounterArgument rawText={debater} />
+          <hr />
+          <ProfessorNote rawText={professor} />
         </div>
-      ) : mode === 'debater' ? (
-        <CounterArgument rawText={debater} />
-      ) : (
-        <ProfessorNote rawText={professor} />
       )}
     </div>
   );

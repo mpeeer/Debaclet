@@ -73,6 +73,10 @@ function parseProfessorAnalysis(text: string): ParsedAnalysis | null {
     const readMatch = text.match(/##\s*RECOMMENDED\s*READING\s*\n([\s\S]*?)$/i);
     if (readMatch) reading = readMatch[1].trim();
 
+    if (!premises.length && !conclusion && !assumptions.length && !strengths && !weaknesses && !fallacies && !structural && !confidence && !improvement && !reading) {
+      return null;
+    }
+
     return {
       reconstruction: { premises, conclusion, assumptions },
       strengths, weaknesses, fallacies, structural,
@@ -84,44 +88,39 @@ function parseProfessorAnalysis(text: string): ParsedAnalysis | null {
   }
 }
 
-function getConfidenceColor(level: string): { color: string; bg: string; border: string; bar: string; pct: number } {
-  const l = level.toLowerCase();
-  if (l.includes('high')) return { color: 'text-emerald-400', bg: 'bg-emerald-400/10', border: 'border-emerald-400/20', bar: 'bg-emerald-400', pct: 85 };
-  if (l.includes('moderate')) return { color: 'text-amber-400', bg: 'bg-amber-400/10', border: 'border-amber-400/20', bar: 'bg-amber-400', pct: 50 };
-  return { color: 'text-red-400', bg: 'bg-red-400/10', border: 'border-red-400/20', bar: 'bg-red-400', pct: 20 };
-}
-
 export default function ProfessorNote({ rawText }: Props) {
   const analysis = parseProfessorAnalysis(rawText);
 
   if (!analysis) {
     return (
-      <div className="glass rounded-2xl p-6">
-        <div className="prose-debate whitespace-pre-wrap">{rawText}</div>
-      </div>
+      <section className="space-y-2">
+        <h3 className="text-[11px] font-mono uppercase tracking-wider" style={{ color: 'rgb(var(--text-muted))' }}>
+          Logic review
+        </h3>
+        <div className="text-[14px] leading-relaxed whitespace-pre-wrap" style={{ color: 'rgb(var(--text))' }}>
+          {rawText}
+        </div>
+      </section>
     );
   }
 
   return (
-    <div className="space-y-4 animate-fade-in">
-      {/* Reconstruction */}
-      <div className="glass rounded-2xl p-5 border-l-2 border-debate-professor/50">
-        <div className="flex items-center gap-2 mb-4">
-          <div className="w-6 h-6 rounded-md bg-debate-professor/10 flex items-center justify-center">
-            <svg className="w-3.5 h-3.5 text-debate-professor" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
-            </svg>
-          </div>
-          <span className="text-xs font-medium text-debate-professor uppercase tracking-wide">Argument Reconstruction</span>
-        </div>
+    <section className="space-y-4">
+      <h3 className="text-[11px] font-mono uppercase tracking-wider" style={{ color: 'rgb(var(--text-muted))' }}>
+        Logic review
+      </h3>
 
+      {/* Reconstruction */}
+      <div className="space-y-3">
         {analysis.reconstruction.premises.length > 0 && (
-          <div className="mb-3">
-            <p className="text-[11px] font-semibold uppercase tracking-wider mb-2" style={{ color: 'rgb(var(--text-muted))' }}>Premises</p>
+          <div className="space-y-1">
+            <div className="text-[11px] font-mono uppercase tracking-wider" style={{ color: 'rgb(var(--text-muted))' }}>
+              Premises
+            </div>
             <ul className="space-y-1.5">
               {analysis.reconstruction.premises.map((p, i) => (
-                <li key={i} className="flex gap-2 text-sm" style={{ color: 'rgb(var(--text-secondary))' }}>
-                  <span className="text-debate-professor/60 font-mono text-xs mt-1">P{i + 1}</span>
+                <li key={i} className="flex gap-2 text-[14px] leading-relaxed" style={{ color: 'rgb(var(--text-secondary))' }}>
+                  <span className="font-mono text-[12px] shrink-0" style={{ color: 'rgb(var(--text-muted))' }}>P{i + 1}</span>
                   <span>{p}</span>
                 </li>
               ))}
@@ -130,19 +129,23 @@ export default function ProfessorNote({ rawText }: Props) {
         )}
 
         {analysis.reconstruction.conclusion && (
-          <div className="mb-3">
-            <p className="text-[11px] font-semibold uppercase tracking-wider mb-1" style={{ color: 'rgb(var(--text-muted))' }}>Conclusion</p>
-            <p className="text-sm font-medium" style={{ color: 'rgb(var(--text))' }}>{analysis.reconstruction.conclusion}</p>
+          <div className="space-y-1">
+            <div className="text-[11px] font-mono uppercase tracking-wider" style={{ color: 'rgb(var(--text-muted))' }}>
+              Conclusion
+            </div>
+            <p className="text-[14px] leading-relaxed" style={{ color: 'rgb(var(--text))' }}>{analysis.reconstruction.conclusion}</p>
           </div>
         )}
 
         {analysis.reconstruction.assumptions.length > 0 && (
-          <div>
-            <p className="text-[11px] font-semibold uppercase tracking-wider mb-2" style={{ color: 'rgb(var(--text-muted))' }}>Implicit Assumptions</p>
-            <ul className="space-y-1">
+          <div className="space-y-1">
+            <div className="text-[11px] font-mono uppercase tracking-wider" style={{ color: 'rgb(var(--text-muted))' }}>
+              Implicit assumptions
+            </div>
+            <ul className="space-y-1.5">
               {analysis.reconstruction.assumptions.map((a, i) => (
-                <li key={i} className="flex gap-2 text-sm" style={{ color: 'rgb(var(--text-secondary))' }}>
-                  <span className="text-amber-400/60 font-mono text-xs mt-1">A{i + 1}</span>
+                <li key={i} className="flex gap-2 text-[14px] leading-relaxed" style={{ color: 'rgb(var(--text-secondary))' }}>
+                  <span className="font-mono text-[12px] shrink-0" style={{ color: 'rgb(var(--text-muted))' }}>A{i + 1}</span>
                   <span>{a}</span>
                 </li>
               ))}
@@ -151,107 +154,81 @@ export default function ProfessorNote({ rawText }: Props) {
         )}
       </div>
 
-      {/* Strengths & Weaknesses */}
-      <div className="grid sm:grid-cols-2 gap-4">
-        {analysis.strengths && (
-          <div className="glass rounded-2xl p-5">
-            <div className="flex items-center gap-2 mb-2">
-              <svg className="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-emerald-400">Strengths</span>
-            </div>
-            <p className="text-sm leading-relaxed" style={{ color: 'rgb(var(--text-secondary))' }}>{analysis.strengths}</p>
-          </div>
-        )}
-
-        {analysis.weaknesses && (
-          <div className="glass rounded-2xl p-5">
-            <div className="flex items-center gap-2 mb-2">
-              <svg className="w-4 h-4 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
-              </svg>
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-amber-400">Weaknesses</span>
-            </div>
-            <p className="text-sm leading-relaxed" style={{ color: 'rgb(var(--text-secondary))' }}>{analysis.weaknesses}</p>
-          </div>
-        )}
-      </div>
-
-      {/* Fallacies */}
-      {analysis.fallacies && (
-        <div className="glass rounded-2xl p-5">
-          <div className="flex items-center gap-2 mb-2">
-            <svg className="w-4 h-4 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
-            </svg>
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-red-400">Fallacies Detected</span>
-          </div>
-          <p className="text-sm leading-relaxed" style={{ color: 'rgb(var(--text-secondary))' }}>{analysis.fallacies}</p>
-        </div>
-      )}
-
-      {/* Structural Assessment & Verdict */}
-      <div className="grid sm:grid-cols-2 gap-4">
-        {analysis.structural && (
-          <div className="glass rounded-2xl p-5">
-            <div className="flex items-center gap-2 mb-2">
-              <svg className="w-4 h-4 text-debate-professor" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5 0l-1 3m8.5-3l1 3m0 0l.5 1.5m-.5-1.5h-9.5m0 0l-.5 1.5" />
-              </svg>
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-debate-professor">Structural Assessment</span>
-            </div>
-            <p className="text-sm leading-relaxed" style={{ color: 'rgb(var(--text-secondary))' }}>{analysis.structural}</p>
-          </div>
-        )}
-
-        <div className="glass rounded-2xl p-5 space-y-4">
-          {analysis.verdict.confidence && (() => {
-            const conf = getConfidenceColor(analysis.verdict.confidence);
-            return (
-            <div>
-              <p className="text-[11px] font-semibold uppercase tracking-wider mb-2" style={{ color: 'rgb(var(--text-muted))' }}>Epistemic Verdict</p>
-              <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium border ${conf.color} ${conf.bg} ${conf.border}`}>
-                Confidence: {analysis.verdict.confidence}
-              </span>
-              {/* Confidence meter */}
-              <div className="mt-3">
-                <div className="h-1.5 rounded-full bg-white/5 overflow-hidden">
-                  <div
-                    className={`h-full rounded-full transition-all duration-700 ${conf.bar}`}
-                    style={{ width: `${conf.pct}%` }}
-                  />
-                </div>
-                <div className="flex justify-between mt-1">
-                  <span className="text-[10px]" style={{ color: 'rgb(var(--text-muted))' }}>Weak</span>
-                  <span className="text-[10px]" style={{ color: 'rgb(var(--text-muted))' }}>Strong</span>
-                </div>
+      {/* Strengths / Weaknesses */}
+      {(analysis.strengths || analysis.weaknesses) && (
+        <div className="grid sm:grid-cols-2 gap-4">
+          {analysis.strengths && (
+            <div className="space-y-1">
+              <div className="text-[11px] font-mono uppercase tracking-wider" style={{ color: 'rgb(var(--text-muted))' }}>
+                Strengths
               </div>
+              <p className="text-[14px] leading-relaxed" style={{ color: 'rgb(var(--text-secondary))' }}>{analysis.strengths}</p>
             </div>
-            );
-          })()}
-
-          {analysis.verdict.improvement && (
-            <div>
-              <p className="text-[11px] font-semibold uppercase tracking-wider mb-1" style={{ color: 'rgb(var(--text-muted))' }}>Key Improvement</p>
-              <p className="text-sm leading-relaxed" style={{ color: 'rgb(var(--text-secondary))' }}>{analysis.verdict.improvement}</p>
+          )}
+          {analysis.weaknesses && (
+            <div className="space-y-1">
+              <div className="text-[11px] font-mono uppercase tracking-wider" style={{ color: 'rgb(var(--text-muted))' }}>
+                Weaknesses
+              </div>
+              <p className="text-[14px] leading-relaxed" style={{ color: 'rgb(var(--text-secondary))' }}>{analysis.weaknesses}</p>
             </div>
           )}
         </div>
-      </div>
+      )}
 
-      {/* Recommended Reading */}
-      {analysis.reading && (
-        <div className="glass rounded-2xl p-5 bg-debate-professor/5 border border-debate-professor/20">
-          <div className="flex items-center gap-2 mb-2">
-            <svg className="w-4 h-4 text-debate-professor" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
-            </svg>
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-debate-professor/70">Recommended Reading</span>
-          </div>
-          <p className="text-sm leading-relaxed" style={{ color: 'rgb(var(--text-secondary))' }}>{analysis.reading}</p>
+      {/* Fallacies / Structural */}
+      {(analysis.fallacies || analysis.structural) && (
+        <div className="grid sm:grid-cols-2 gap-4">
+          {analysis.fallacies && (
+            <div className="space-y-1">
+              <div className="text-[11px] font-mono uppercase tracking-wider" style={{ color: 'rgb(var(--text-muted))' }}>
+                Fallacies
+              </div>
+              <p className="text-[14px] leading-relaxed" style={{ color: 'rgb(var(--text-secondary))' }}>{analysis.fallacies}</p>
+            </div>
+          )}
+          {analysis.structural && (
+            <div className="space-y-1">
+              <div className="text-[11px] font-mono uppercase tracking-wider" style={{ color: 'rgb(var(--text-muted))' }}>
+                Structural
+              </div>
+              <p className="text-[14px] leading-relaxed" style={{ color: 'rgb(var(--text-secondary))' }}>{analysis.structural}</p>
+            </div>
+          )}
         </div>
       )}
-    </div>
+
+      {/* Verdict */}
+      {(analysis.verdict.confidence || analysis.verdict.improvement) && (
+        <div className="grid sm:grid-cols-2 gap-4">
+          {analysis.verdict.confidence && (
+            <div className="space-y-1">
+              <div className="text-[11px] font-mono uppercase tracking-wider" style={{ color: 'rgb(var(--text-muted))' }}>
+                Confidence
+              </div>
+              <p className="text-[14px]" style={{ color: 'rgb(var(--text))' }}>{analysis.verdict.confidence}</p>
+            </div>
+          )}
+          {analysis.verdict.improvement && (
+            <div className="space-y-1">
+              <div className="text-[11px] font-mono uppercase tracking-wider" style={{ color: 'rgb(var(--text-muted))' }}>
+                Key improvement
+              </div>
+              <p className="text-[14px] leading-relaxed" style={{ color: 'rgb(var(--text-secondary))' }}>{analysis.verdict.improvement}</p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Reading */}
+      {analysis.reading && (
+        <div className="space-y-1">
+          <div className="text-[11px] font-mono uppercase tracking-wider" style={{ color: 'rgb(var(--text-muted))' }}>
+            Recommended reading
+          </div>
+          <p className="text-[14px] leading-relaxed" style={{ color: 'rgb(var(--text-secondary))' }}>{analysis.reading}</p>
+        </div>
+      )}
+    </section>
   );
 }

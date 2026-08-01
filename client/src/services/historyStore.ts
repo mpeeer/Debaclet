@@ -10,16 +10,12 @@ function isHistoryEntry(value: unknown): value is HistoryEntry {
   if (!value || typeof value !== 'object') return false;
   const entry = value as Partial<HistoryEntry>;
   const result = entry.result as Partial<HistoryEntry['result']> | undefined;
-  const score = entry.score as Partial<HistoryEntry['score']> | undefined;
   return Boolean(
     typeof entry.id === 'string' &&
     typeof entry.timestamp === 'number' && Number.isFinite(entry.timestamp) &&
     typeof entry.fileName === 'string' &&
     result && typeof result.originalLength === 'number' && Number.isFinite(result.originalLength) &&
-    typeof result.debater === 'string' && typeof result.professor === 'string' &&
-    score && typeof score.total === 'number' && Number.isFinite(score.total) && score.total >= 0 && score.total <= 100 &&
-    typeof score.counterCount === 'number' && Number.isFinite(score.counterCount) && score.counterCount >= 0 &&
-    typeof score.confidence === 'string' && typeof score.hasFallacies === 'boolean'
+    typeof result.debater === 'string' && typeof result.professor === 'string'
   );
 }
 
