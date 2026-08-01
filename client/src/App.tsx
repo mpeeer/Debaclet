@@ -207,25 +207,30 @@ export default function App() {
               <HowTo />
             </div>
           ) : (
-          <div className="w-full max-w-3xl mt-12 sm:mt-20">
+          <div className="w-full max-w-4xl mt-10 sm:mt-16">
             {state === 'idle' && (
-              <div className="text-center mb-12 animate-fade-in">
-                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border text-sm font-medium mb-8" style={{ backgroundColor: 'var(--accent-soft)', borderColor: 'color-mix(in srgb, rgb(var(--accent)) 20%, transparent)', color: 'rgb(var(--accent))' }}>
+              <div className="text-center mb-10 sm:mb-14 animate-fade-in">
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border text-[11px] font-semibold uppercase tracking-wider mb-6" style={{ backgroundColor: 'var(--accent-soft)', borderColor: 'color-mix(in srgb, rgb(var(--accent)) 20%, transparent)', color: 'rgb(var(--accent))' }}>
                   <span className="relative flex h-2 w-2"><span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{ backgroundColor: 'rgb(var(--accent))' }}></span><span className="relative inline-flex rounded-full h-2 w-2" style={{ backgroundColor: 'rgb(var(--accent))' }}></span></span>
                   No install. No key. No account.
                 </div>
-                <h1 className="text-5xl sm:text-6xl lg:text-7xl font-serif italic font-semibold tracking-tight mb-5 leading-tight" style={{ color: 'rgb(var(--text))' }}>Sharpen<br />Your Mind</h1>
-                <p className="text-lg sm:text-xl max-w-xl mx-auto leading-relaxed" style={{ color: 'rgb(var(--text-secondary))' }}>Drop your essay. Face a world-class Oxford Union debate opponent and receive rigorous logical analysis from a university professor — all running in your browser.</p>
+                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-serif italic font-semibold tracking-tight mb-5 leading-[1.05]" style={{ color: 'rgb(var(--text))' }}>Make your argument<br /><span className="text-accent">impossible to ignore.</span></h1>
+                <p className="text-base sm:text-lg max-w-2xl mx-auto leading-relaxed" style={{ color: 'rgb(var(--text-secondary))' }}>Upload an essay and get two rigorous perspectives: an Oxford-style counterargument and a structured logic review.</p>
               </div>
             )}
 
             {(state === 'idle' || state === 'error') && (
               <div>
-                <InputPanel onSubmit={handleSubmit} isLoading={false} error={error} />
+                <div className="rounded-3xl p-1">
+                  <InputPanel onSubmit={handleSubmit} isLoading={false} error={error} />
+                </div>
                 {history.length > 0 && (
                   <div className="mt-10 animate-fade-in">
-                    <div className="flex items-center justify-between mb-3">
-                      <h3 className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'rgb(var(--text-muted))' }}>Recent debates</h3>
+                    <div className="flex items-center justify-between mb-4">
+                      <div>
+                        <p className="eyebrow mb-1.5">Your workspace</p>
+                        <h3 className="text-base font-semibold" style={{ color: 'rgb(var(--text))' }}>Recent analyses</h3>
+                      </div>
                       <div className="flex items-center gap-2">
                         {history.length >= 2 && (
                           <button onClick={() => { setCompareMode(!compareMode); setCompareIds(new Set()); }} className={`text-[11px] font-medium px-2 py-1 rounded-lg border transition-colors ${compareMode ? 'border-accent bg-accent/5' : 'border-surface-border hover:border-zinc-600'}`} style={{ color: compareMode ? 'rgb(var(--accent))' : 'rgb(var(--text-muted))' }}>{compareMode ? 'Cancel' : 'Compare'}</button>
@@ -389,9 +394,10 @@ export default function App() {
 
             {state === 'results' && result && (
               <div ref={resultsRef}>
-                <div className="flex items-center justify-between mb-8 animate-fade-in">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 animate-fade-in">
                   <div>
-                    <div className="flex items-center gap-3"><h2 className="text-xl font-serif italic font-semibold" style={{ color: 'rgb(var(--text))' }}>Analysis Complete</h2>{currentScore && <ScoreBadge score={currentScore} />}</div>
+                    <div className="flex items-center gap-3"><p className="eyebrow">Analysis complete</p>{currentScore && <ScoreBadge score={currentScore} />}</div>
+                    <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight mt-2" style={{ color: 'rgb(var(--text))' }}>Your argument, examined.</h2>
                     {currentFile && <p className="text-sm mt-1" style={{ color: 'rgb(var(--text-muted))' }}>{currentFile} &middot; {currentScore?.counterCount || 0} counterarguments &middot; {result.originalLength.toLocaleString()} chars</p>}
                   </div>
                   <div className="flex items-center gap-2">
@@ -406,7 +412,7 @@ export default function App() {
           )}
         </main>
 
-        <footer className="text-center py-8 text-xs" style={{ color: 'rgb(var(--text-muted))' }}>Debalect &mdash; {staticMode || cachedConfig.provider === 'webllm' ? 'Cognitive training that runs in your browser. No install, no account, no API key needed.' : `Powered by ${cachedConfig.provider === 'ollama' ? 'Ollama (local)' : cachedConfig.provider === 'openai' ? 'OpenAI' : 'Anthropic'}.`}</footer>
+        <footer className="text-center py-10 text-xs border-t border-surface-border/60" style={{ color: 'rgb(var(--text-muted))' }}>Debalect &mdash; {staticMode || cachedConfig.provider === 'webllm' ? 'Cognitive training that runs in your browser. No install, no account, no API key needed.' : `Powered by ${cachedConfig.provider === 'ollama' ? 'Ollama (local)' : cachedConfig.provider === 'openai' ? 'OpenAI' : 'Anthropic'}.`}</footer>
         </ErrorBoundary>
       </div>
     </ThemeProvider>

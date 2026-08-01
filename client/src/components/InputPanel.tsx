@@ -107,14 +107,25 @@ export default function InputPanel({ onSubmit, isLoading, error }: Props) {
   const errorTip = error ? getErrorTip(error) : null;
 
   return (
-    <div className="space-y-4 animate-fade-in">
+    <div className="space-y-5 animate-fade-in">
+      <div className="flex items-end justify-between gap-4">
+        <div>
+          <p className="eyebrow mb-2">Start an analysis</p>
+          <h2 className="text-lg sm:text-xl font-semibold tracking-tight" style={{ color: 'rgb(var(--text))' }}>Upload a document to begin</h2>
+        </div>
+        <span className="hidden sm:inline-flex items-center gap-1.5 text-[11px] font-medium" style={{ color: 'rgb(var(--text-muted))' }}>
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+          Private by default
+        </span>
+      </div>
+
       {/* File upload zone */}
       <div
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         className={`
-          relative rounded-2xl border-2 border-dashed transition-all duration-500 p-10 text-center cursor-pointer
+          relative rounded-2xl border-2 border-dashed transition-all duration-300 p-8 sm:p-10 text-center cursor-pointer surface-card hover-lift
           ${isDragging
             ? 'border-accent bg-accent/[0.08] shadow-glow scale-[1.01]'
             : file
@@ -147,6 +158,7 @@ export default function InputPanel({ onSubmit, isLoading, error }: Props) {
               onClick={(e) => { e.stopPropagation(); removeFile(); }}
               className="ml-2 p-1.5 rounded-lg hover:bg-white/5 transition-colors"
               style={{ color: 'rgb(var(--text-muted))' }}
+              aria-label="Remove selected file"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -155,15 +167,22 @@ export default function InputPanel({ onSubmit, isLoading, error }: Props) {
           </div>
         ) : (
           <div>
-            <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-white/5 flex items-center justify-center">
+            <div className="w-14 h-14 mx-auto mb-5 rounded-2xl bg-accent/10 border border-accent/15 flex items-center justify-center">
               <svg className="w-7 h-7" style={{ color: 'rgb(var(--text-muted))' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z" />
               </svg>
             </div>
-            <p className="text-sm" style={{ color: 'rgb(var(--text-secondary))' }}>
-              <span className="font-medium" style={{ color: 'rgb(var(--text))' }}>Drop your file</span> or click to browse
+            <p className="text-[15px]" style={{ color: 'rgb(var(--text-secondary))' }}>
+              <span className="font-semibold" style={{ color: 'rgb(var(--text))' }}>Drop your document</span> or click to browse
             </p>
-            <p className="text-xs mt-1.5" style={{ color: 'rgb(var(--text-muted))' }}>.txt .md .pdf .docx &mdash; up to 10MB</p>
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }}
+              className="mt-4 inline-flex items-center justify-center rounded-lg bg-accent px-3.5 py-2 text-xs font-semibold text-white transition-colors hover:bg-blue-500 focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+            >
+              Browse files
+            </button>
+            <p className="text-xs mt-3" style={{ color: 'rgb(var(--text-muted))' }}>.txt .md .pdf .docx &mdash; up to 10MB</p>
           </div>
         )}
       </div>
@@ -219,9 +238,9 @@ export default function InputPanel({ onSubmit, isLoading, error }: Props) {
         onClick={handleSubmit}
         disabled={!canSubmit}
         className={`
-          w-full py-3.5 px-6 rounded-xl font-medium text-sm transition-all duration-300
+          w-full py-3.5 px-6 rounded-xl font-semibold text-sm transition-all duration-300
           ${canSubmit
-            ? 'bg-white text-black hover:bg-zinc-100 hover:shadow-lg hover:shadow-white/5 active:scale-[0.98]'
+            ? 'bg-accent text-white hover:bg-blue-500 hover:shadow-lg hover:shadow-accent/20 active:scale-[0.98]'
             : 'bg-white/[0.04] text-zinc-600 cursor-not-allowed'
           }
         `}
@@ -234,8 +253,7 @@ export default function InputPanel({ onSubmit, isLoading, error }: Props) {
             </svg>
             Debating...
           </span>
-        ) : (
-          'Begin Debate'
+        ) : (            'Run analysis'
         )}
       </button>
     </div>

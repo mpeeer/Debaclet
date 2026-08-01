@@ -22,19 +22,24 @@ export default function Header({ onOpenSettings, onViewChange, activeView, provi
 
   return (
     <header className="sticky top-0 z-50 glass border-b border-surface-border">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-[4.25rem] flex items-center justify-between gap-4">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-accent/25 to-debate-professor/20 border border-accent/30 flex items-center justify-center shadow-glow shrink-0">
             <svg className="w-4 h-4 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
             </svg>
           </div>
-          <span className="text-sm font-semibold tracking-tight" style={{ color: 'rgb(var(--text))' }}>
-            Debalect
-          </span>
+          <div className="min-w-0">
+            <span className="block text-[15px] font-semibold tracking-tight" style={{ color: 'rgb(var(--text))' }}>
+              Debalect
+            </span>
+            <span className="hidden md:block text-[10px] uppercase tracking-[0.16em]" style={{ color: 'rgb(var(--text-muted))' }}>
+              Argument intelligence
+            </span>
+          </div>
 
           {label && (
-            <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium border"
+            <span className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wider border"
               style={{
                 backgroundColor: 'color-mix(in srgb, rgb(var(--accent)) 10%, transparent)',
                 borderColor: 'color-mix(in srgb, rgb(var(--accent)) 25%, transparent)',
@@ -46,11 +51,11 @@ export default function Header({ onOpenSettings, onViewChange, activeView, provi
           )}
         </div>
 
-        <nav className="flex items-center gap-1 p-1 rounded-xl bg-surface-overlay border border-surface-border" aria-label="Primary navigation">
+        <nav className="flex items-center gap-1 p-1 rounded-xl bg-surface-overlay/80 border border-surface-border shrink-0" aria-label="Primary navigation">
           <button
             onClick={() => onViewChange('debate')}
             aria-current={activeView === 'debate' ? 'page' : undefined}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${activeView === 'debate' ? 'bg-white/10' : 'hover:bg-white/5'}`}
+            className={`px-2.5 sm:px-3.5 py-2 rounded-lg text-xs font-semibold transition-all ${activeView === 'debate' ? 'bg-accent/10' : 'hover:bg-white/5'}`}
             style={{ color: activeView === 'debate' ? 'rgb(var(--text))' : 'rgb(var(--text-muted))' }}
           >
             <span className="hidden sm:inline">Debate</span><span className="sm:hidden">Deb.</span>
@@ -58,7 +63,7 @@ export default function Header({ onOpenSettings, onViewChange, activeView, provi
           <button
             onClick={() => onViewChange('guide')}
             aria-current={activeView === 'guide' ? 'page' : undefined}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${activeView === 'guide' ? 'bg-accent/10' : 'hover:bg-white/5'}`}
+            className={`px-2.5 sm:px-3.5 py-2 rounded-lg text-xs font-semibold transition-all ${activeView === 'guide' ? 'bg-accent/10' : 'hover:bg-white/5'}`}
             style={{ color: activeView === 'guide' ? 'rgb(var(--accent))' : 'rgb(var(--text-muted))' }}
           >
             <span className="hidden sm:inline">How-to</span><span className="sm:hidden">Guide</span>
@@ -68,7 +73,7 @@ export default function Header({ onOpenSettings, onViewChange, activeView, provi
         <div className="flex items-center gap-1">
           <button
             onClick={onOpenSettings}
-            className="p-2 rounded-lg hover:bg-white/5 transition-colors"
+            className="p-2.5 rounded-xl hover:bg-white/5 transition-colors border border-transparent hover:border-surface-border"
             style={{ color: 'rgb(var(--text-muted))' }}
             aria-label="Settings"
           >
@@ -77,7 +82,9 @@ export default function Header({ onOpenSettings, onViewChange, activeView, provi
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
           </button>
-          <ThemeSwitcher />
+          <div className="max-[400px]:hidden">
+            <ThemeSwitcher />
+          </div>
         </div>
       </div>
     </header>

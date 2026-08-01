@@ -35,8 +35,9 @@ export default function ThemeSwitcher() {
     <div ref={ref} className="relative">
       <button
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-surface-border hover:border-zinc-600 transition-colors"
+        className="flex items-center gap-2 px-3 py-2 rounded-xl border border-surface-border hover:border-zinc-600 transition-colors text-xs font-medium"
         aria-label="Switch theme"
+        aria-expanded={open}
       >
         {activeSwatch ? (
           <span

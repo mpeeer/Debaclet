@@ -13,11 +13,19 @@ export default function DebateView({ debater, professor }: Props) {
   const [mode, setMode] = useState<ViewMode>('debater');
 
   return (
-    <div className="animate-fade-in space-y-6">
-      {/* Tab switcher + split toggle */}
-      <div className="flex rounded-xl bg-surface-overlay border border-surface-border p-1 gap-1">
+    <div className="animate-fade-in space-y-5">
+      {/* Result view switcher */}
+      <div className="flex items-center justify-between gap-4 mb-1">
+        <div>
+          <p className="eyebrow mb-2">Analysis workspace</p>
+          <p className="text-sm" style={{ color: 'rgb(var(--text-muted))' }}>Move between the debate response and the logic review.</p>
+        </div>
+      </div>
+      <div className="flex rounded-2xl bg-surface-overlay border border-surface-border p-1.5 gap-1" role="tablist" aria-label="Analysis views">
         <button
           onClick={() => setMode('debater')}
+          role="tab"
+          aria-selected={mode === 'debater'}
           className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-sm font-medium transition-all duration-200 ${
             mode === 'debater' ? 'bg-debate-oxford/15 text-debate-oxford shadow-sm' : 'opacity-60 hover:opacity-100'
           }`}
@@ -30,6 +38,8 @@ export default function DebateView({ debater, professor }: Props) {
         </button>
         <button
           onClick={() => setMode('split')}
+          role="tab"
+          aria-selected={mode === 'split'}
           className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-sm font-medium transition-all duration-200 ${
             mode === 'split' ? 'bg-accent/10 text-accent shadow-sm' : 'opacity-60 hover:opacity-100'
           }`}
@@ -42,6 +52,8 @@ export default function DebateView({ debater, professor }: Props) {
         </button>
         <button
           onClick={() => setMode('professor')}
+          role="tab"
+          aria-selected={mode === 'professor'}
           className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-sm font-medium transition-all duration-200 ${
             mode === 'professor' ? 'bg-debate-professor/15 text-debate-professor shadow-sm' : 'opacity-60 hover:opacity-100'
           }`}
