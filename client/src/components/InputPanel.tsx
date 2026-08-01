@@ -3,8 +3,11 @@ import { readFileContent } from '../services/fileReader';
 
 interface Props {
   onSubmit: (text: string, file: File | null) => void;
+  onRetry?: () => void;
   isLoading: boolean;
   error: string | null;
+  initialText?: string;
+  initialFile?: File | null;
 }
 
 /** Return the most relevant contextual tip for a given error message */
@@ -28,8 +31,10 @@ function getErrorTip(error: string): string | null {
   return '💡 Try again with a different file, or check your internet connection if the AI model hasn\'t downloaded yet.';
 }
 
-export default function InputPanel({ onSubmit, isLoading, error }: Props) {
-  const [file, setFile] = useState<File | null>(null);
+export default function InputPanel({ onSubmit, onRetry, isLoading, error, initialText = '', initialFile = null }: Props) {
+  const [mode, setMode] = useState<'document' | 'text'>(initialText && !initialFile ? 'text' : 'document');
+  const [text, setText] = useState(initialText);
+  const [file, setFile] = useState<File | null>(initialFile);
   const [preview, setPreview] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -57,6 +62,7 @@ export default function InputPanel({ onSubmit, isLoading, error }: Props) {
       const ext = '.' + f.name.split('.').pop()?.toLowerCase();
       if (validTypes.includes(f.type) || validTypes.includes(ext)) {
         setFile(f);
+        setText('');
         readPreview(f);
       } else {
         alert('Unsupported file type. Please use .txt, .md, .pdf, or .docx files.');
@@ -80,12 +86,23 @@ export default function InputPanel({ onSubmit, isLoading, error }: Props) {
     handleFileChange(e.dataTransfer.files);
   };
 
+  useEffect(() => {
+    setText(initialText);
+    setFile(initialFile);
+    setMode(initialText && !initialFile ? 'text' : 'document');
+    if (initialFile) {
+      readPreview(initialFile);
+    } else {
+      setPreview(null);
+    }
+  }, [initialText, initialFile]);
+
   const handleSubmit = () => {
-    if (!file) return;
-    onSubmit('', file);
+    if (!text.trim() && !file) return;
+    onSubmit(text.trim(), file);
   };
 
-  const canSubmit = Boolean(file) && !isLoading;
+  const canSubmit = Boolean(text.trim() || file) && !isLoading;
 
   useEffect(() => {
     const handleKeyDown = (e: globalThis.KeyboardEvent) => {
@@ -96,7 +113,7 @@ export default function InputPanel({ onSubmit, isLoading, error }: Props) {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [file, canSubmit]);
+  }, [file, text, canSubmit]);
 
   const removeFile = () => {
     setFile(null);
@@ -111,7 +128,7 @@ export default function InputPanel({ onSubmit, isLoading, error }: Props) {
       <div className="flex items-end justify-between gap-4">
         <div>
           <p className="eyebrow mb-2">Start an analysis</p>
-          <h2 className="text-lg sm:text-xl font-semibold tracking-tight" style={{ color: 'rgb(var(--text))' }}>Upload a document to begin</h2>
+          <h2 className="text-lg sm:text-xl font-semibold tracking-tight" style={{ color: 'rgb(var(--text))' }}>Choose your source</h2>
         </div>
         <span className="hidden sm:inline-flex items-center gap-1.5 text-[11px] font-medium" style={{ color: 'rgb(var(--text-muted))' }}>
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
@@ -119,7 +136,48 @@ export default function InputPanel({ onSubmit, isLoading, error }: Props) {
         </span>
       </div>
 
-      {/* File upload zone */}
+      <div className="flex rounded-xl bg-surface-overlay border border-surface-border p-1 gap-1" role="tablist" aria-label="Analysis input">
+        <button
+          type="button"
+          role="tab"
+          aria-selected={mode === 'document'}
+          onClick={() => { setMode('document'); setText(''); }}
+          className={`flex-1 rounded-lg px-3 py-2 text-xs font-semibold transition-colors ${mode === 'document' ? 'bg-accent/10 text-accent' : 'hover:bg-white/5'}`}
+          style={mode !== 'document' ? { color: 'rgb(var(--text-muted))' } : undefined}
+        >
+          Upload document
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={mode === 'text'}
+          onClick={() => { setMode('text'); setFile(null); setPreview(null); if (fileInputRef.current) fileInputRef.current.value = ''; }}
+          className={`flex-1 rounded-lg px-3 py-2 text-xs font-semibold transition-colors ${mode === 'text' ? 'bg-accent/10 text-accent' : 'hover:bg-white/5'}`}
+          style={mode !== 'text' ? { color: 'rgb(var(--text-muted))' } : undefined}
+        >
+          Paste text
+        </button>
+      </div>
+
+      {mode === 'text' ? (
+        <div className="space-y-3">
+          <textarea
+            value={text}
+            onChange={(e) => { setText(e.target.value); if (file) { setFile(null); setPreview(null); } }}
+            placeholder="Paste the argument, essay, or position you want to examine…"
+            rows={9}
+            maxLength={33000}
+            className="w-full resize-y rounded-2xl border border-surface-border bg-surface-card px-4 py-4 text-sm leading-relaxed transition-colors focus:border-accent/60 focus:outline-none"
+            style={{ color: 'rgb(var(--text))', backgroundColor: 'rgb(var(--bg-raised))' }}
+            aria-label="Argument text"
+          />
+          <div className="flex items-center justify-between text-[11px]" style={{ color: 'rgb(var(--text-muted))' }}>
+            <span>{text.length.toLocaleString()} / 33,000 characters</span>
+            <span>Minimum 50 characters</span>
+          </div>
+        </div>
+      ) : (
+      /* File upload zone */
       <div
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
@@ -186,6 +244,7 @@ export default function InputPanel({ onSubmit, isLoading, error }: Props) {
           </div>
         )}
       </div>
+      )}
 
       {/* File preview */}
       {preview && (
@@ -227,6 +286,11 @@ export default function InputPanel({ onSubmit, isLoading, error }: Props) {
                 <div className="mt-3 pt-3 border-t border-red-500/10">
                   <p className="text-xs text-red-400/60">{errorTip}</p>
                 </div>
+              )}
+              {onRetry && (
+                <button type="button" onClick={onRetry} className="mt-3 text-xs font-semibold text-red-300 underline underline-offset-4 hover:text-red-200">
+                  Retry analysis
+                </button>
               )}
             </div>
           </div>

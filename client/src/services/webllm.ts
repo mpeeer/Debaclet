@@ -23,6 +23,13 @@ export function getCurrentModel(): string {
   return currentModel;
 }
 
+/** Stop an active browser generation, if the engine supports interruption. */
+export async function interruptBrowserAI(): Promise<void> {
+  if (engine) {
+    await engine.interruptGenerate();
+  }
+}
+
 export async function loadModel(
   modelId: string,
   onProgress: (text: string, pct: number) => void,
