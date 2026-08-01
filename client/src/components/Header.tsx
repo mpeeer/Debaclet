@@ -1,7 +1,11 @@
 import ThemeSwitcher from './ThemeSwitcher';
 
+type AppView = 'debate' | 'guide';
+
 interface Props {
   onOpenSettings: () => void;
+  onViewChange: (view: AppView) => void;
+  activeView: AppView;
   provider?: string;
   staticMode?: boolean;
 }
@@ -13,7 +17,7 @@ const PROVIDER_LABELS: Record<string, string> = {
   anthropic: 'Anthropic',
 };
 
-export default function Header({ onOpenSettings, provider, staticMode }: Props) {
+export default function Header({ onOpenSettings, onViewChange, activeView, provider, staticMode }: Props) {
   const label = provider ? (PROVIDER_LABELS[provider] || provider) : '';
 
   return (
@@ -41,6 +45,25 @@ export default function Header({ onOpenSettings, provider, staticMode }: Props) 
             </span>
           )}
         </div>
+
+        <nav className="flex items-center gap-1 p-1 rounded-xl bg-surface-overlay border border-surface-border" aria-label="Primary navigation">
+          <button
+            onClick={() => onViewChange('debate')}
+            aria-current={activeView === 'debate' ? 'page' : undefined}
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${activeView === 'debate' ? 'bg-white/10' : 'hover:bg-white/5'}`}
+            style={{ color: activeView === 'debate' ? 'rgb(var(--text))' : 'rgb(var(--text-muted))' }}
+          >
+            <span className="hidden sm:inline">Debate</span><span className="sm:hidden">Deb.</span>
+          </button>
+          <button
+            onClick={() => onViewChange('guide')}
+            aria-current={activeView === 'guide' ? 'page' : undefined}
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${activeView === 'guide' ? 'bg-accent/10' : 'hover:bg-white/5'}`}
+            style={{ color: activeView === 'guide' ? 'rgb(var(--accent))' : 'rgb(var(--text-muted))' }}
+          >
+            <span className="hidden sm:inline">How-to</span><span className="sm:hidden">Guide</span>
+          </button>
+        </nav>
 
         <div className="flex items-center gap-1">
           <button

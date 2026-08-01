@@ -5,6 +5,7 @@ import Header from './components/Header';
 import InputPanel from './components/InputPanel';
 import DebateView from './components/DebateView';
 import SettingsModal from './components/SettingsModal';
+import HowTo from './components/HowTo';
 import ErrorBoundary from './components/ErrorBoundary';
 import { queryBrowserAI, isWebGPUSupported } from './services/webllm';
 import { readFileContent } from './services/fileReader';
@@ -52,6 +53,7 @@ export default function App() {
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [currentFile, setCurrentFile] = useState<string>('');
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [activeView, setActiveView] = useState<'debate' | 'guide'>('debate');
   const [loadProgress, setLoadProgress] = useState<string>('');
   const [loadStep, setLoadStep] = useState<number>(0); // 0=reading, 1=loading model, 2=debater, 3=professor
   const [cachedConfig, setCachedConfig] = useState<CachedConfig>(() => {
@@ -188,12 +190,23 @@ export default function App() {
   return (
     <ThemeProvider>
       <div className="min-h-screen flex flex-col" style={{ backgroundColor: 'rgb(var(--bg))', color: 'rgb(var(--text))' }}>
-        <Header onOpenSettings={() => setSettingsOpen(true)} provider={cachedConfig.provider} staticMode={staticMode} />
+        <Header
+          onOpenSettings={() => setSettingsOpen(true)}
+          onViewChange={setActiveView}
+          activeView={activeView}
+          provider={cachedConfig.provider}
+          staticMode={staticMode}
+        />
         <SettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} onSaved={handleSettingsSaved} staticMode={staticMode} />
 
         <ErrorBoundary onReset={handleReset}>
 
         <main className="flex-1 flex flex-col items-center px-4 sm:px-6 lg:px-8 pb-24">
+          {activeView === 'guide' ? (
+            <div className="w-full max-w-5xl mt-10 sm:mt-16">
+              <HowTo />
+            </div>
+          ) : (
           <div className="w-full max-w-3xl mt-12 sm:mt-20">
             {state === 'idle' && (
               <div className="text-center mb-12 animate-fade-in">
@@ -390,6 +403,7 @@ export default function App() {
               </div>
             )}
           </div>
+          )}
         </main>
 
         <footer className="text-center py-8 text-xs" style={{ color: 'rgb(var(--text-muted))' }}>Debalect &mdash; {staticMode || cachedConfig.provider === 'webllm' ? 'Cognitive training that runs in your browser. No install, no account, no API key needed.' : `Powered by ${cachedConfig.provider === 'ollama' ? 'Ollama (local)' : cachedConfig.provider === 'openai' ? 'OpenAI' : 'Anthropic'}.`}</footer>
